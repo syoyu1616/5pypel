@@ -1,65 +1,46 @@
-`include "define.v"
 `include "fetch.v"
 `include "decode.v"
 `include "execute.v"
+`include "mem_access.v"
 
-
-/*module noper(
-    input clk,
-    input [4:0] fornop_register1_pype,
-    input [4:0] fornop_register2_pype,
-    input [4:0] WReg_pype,
-    input [4:0] WReg_pype2,
-    input RegWrite_pype1,
-    input RegWrite_pype2,
-
-    output reg nop_IF,
-    output reg nop_ID,
-    output reg nop_EX,
-    output reg nop_Mem,
-    output reg nop_WB
-);
-//branchでのnopについては後で　とりあえず
-
-always @(posedge clk) begin
-            // 初期化（NOP無し）
-        nop_IF  <= 0;
-        nop_ID  <= 0;
-        nop_EX  <= 0;
-        nop_Mem <= 0;
-        nop_WB  <= 0;
-
-        // WReg_pype（EX段の書き込み先）が今のdecodeで使うレジスタと被ってて、RegWriteが有効
-        if (RegWrite_pype1 && (
-            (WReg_pype != 0) &&
-            ((WReg_pype == fornop_register1_pype) || (WReg_pype == fornop_register2_pype))
-        )) begin
-            nop_IF <= 1;
-            nop_ID <= 1;
-        end
-
-        // WReg_pype2（MEM段の書き込み先）が今のdecodeで使うレジスタと被ってて、RegWriteが有効
-        else if (RegWrite_pype2 && (
-            (WReg_pype2 != 0) &&
-            ((WReg_pype2 == fornop_register1_pype) || (WReg_pype2 == fornop_register2_pype))
-        )) begin
-            nop_IF <= 1;
-            nop_ID <= 1;
-            nop_EX <= 1;//ここ求めなきゃね　4/22はnoperのテストから
-        end
-    
-end
-endmodule*/
 //wire型にすることでnopが遅れない？（regだと遅れてる）
+//nop 分岐成立でやってる命令を消したい　stall　読み込むやつに書き込むとかで遅らせたい
+
+//分岐成立　ID　EX　MEMをnop　IFは次の命令を読み込み、WBはjとかならレジスタに書き込み
+//読込書き込みの競合　IF IDをストール　exはnop 解消のためMEM、WBは動いてもらわないといけない
+//レジスタの書き込みの後の読みは余分に1クロック待ってもらう必要あり　fecheとdecodeを止める
+
 module noper(
+    input clk,
+    input rst,
+
+    //次に読み込むレジスタ
     input [4:0] fornop_register1_pype,
     input [4:0] fornop_register2_pype,
+
+    //書き込みの有無
     input [4:0] WReg_pype,
     input [4:0] WReg_pype2,
     input RegWrite_pype1,
     input RegWrite_pype2,
 
-    //branch成立によるnopがあるはず 4/22はこれで完成
+    input [4:0] WReg_pype3,
+    input RegWrite_pype3,
+
+    //分岐成立
+    input branch_PC_contral,
+
+    //メモリアクセスのためのストール
+    input iready_n,
+    input dready_n,
+    input dbusy,
+    input [1:0] MemRW_pype2,
+   
+    output wire stall_IF,
+    output wire stall_ID,
+    output wire stall_EX,
+    output wire stall_Mem,
+    output wire stall_WB,
 
     output wire nop_IF,
     output wire nop_ID,
@@ -67,17 +48,90 @@ module noper(
     output wire nop_Mem,
     output wire nop_WB
 );
-
+//読むやつは1or2個前の命令で書き込む
     wire hazard_pype1 = RegWrite_pype1 && (WReg_pype != 0) &&
                         ((WReg_pype == fornop_register1_pype) || (WReg_pype == fornop_register2_pype));
 
     wire hazard_pype2 = RegWrite_pype2 && (WReg_pype2 != 0) &&
                         ((WReg_pype2 == fornop_register1_pype) || (WReg_pype2 == fornop_register2_pype));
 
-    assign nop_IF  = hazard_pype1 || hazard_pype2;
-    assign nop_ID  = hazard_pype1 || hazard_pype2;
-    assign nop_EX  = hazard_pype2;  // MEM段の競合時だけEXも止める
-    assign nop_Mem = 0;             // 現状は使わない（あとで追加してもOK）
-    assign nop_WB  = 0;
+    wire hazard_pype3 = RegWrite_pype3 && (WReg_pype3 != 0) &&
+                        ((WReg_pype3 == fornop_register1_pype) || (WReg_pype3 == fornop_register2_pype));
+    
+    wire hazard = (rst) ? (hazard_pype1 || hazard_pype2 || hazard_pype3) : 1'b0;
+
+    //wire hazard = hazard_pype1 || hazard_pype2; //|| hazard_pype3;
+
+    wire mem_ac_stall; //メモリアクセスによるストールの管理
+    
+    //案1　このためにMEMRW_pyep3を作り、そこで止めてもらう
+    //案2　疑似的なdbusyを作り、1クロックだけ止める
+    reg write_hold;
+    reg [1:0]write_triggered;
+
+    always @(posedge clk) begin
+    if (!rst) begin
+        write_hold <= 0;
+        write_triggered <= 0;
+    end
+    else if (MemRW_pype2[0] && !write_triggered) begin
+        write_hold <= 1'b1;             // 書き込み命令が来た瞬間に1にする
+        write_triggered <= 2'b10;        // 1クロックだけトリガー
+    end
+
+    else if (MemRW_pype2[0] && write_triggered[1]) begin
+        write_hold <= 1;
+        write_triggered <= 2'b01;
+    end
+
+    else if (MemRW_pype2[0] && write_triggered[0]) begin
+        write_hold <= 0;
+        write_triggered <= 0;
+    end
+
+    else if (!MemRW_pype2[0]) begin
+        write_triggered <= 0;
+        write_hold <= 0;
+    end
+
+    else begin
+        write_hold <= 0;             // 次のクロックで戻す
+        
+    end
+end
+
+    assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || dbusy || write_hold;
+
+    // stall制御：データハザードがあるときは、IF/IDを止める（EXにはnopを入れる）
+    /*assign stall_IF  = hazard || mem_ac_stall;
+    assign stall_ID  = hazard || mem_ac_stall;
+    assign stall_EX  = hazard_pype2 ||mem_ac_stall;*/
+    assign stall_IF  = mem_ac_stall;
+    assign stall_ID  = mem_ac_stall;
+    assign stall_EX  = mem_ac_stall;
+    assign stall_Mem = mem_ac_stall;
+    assign stall_WB  = mem_ac_stall;
+
+    // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
+    assign nop_IF  = hazard; //1'b0; // IFには基本nop入れない（IFは止めるだけ）
+    assign nop_ID  = branch_PC_contral || hazard;  // 分岐成立でIDの命令潰す
+    assign nop_EX  = branch_PC_contral || hazard_pype2;// || hazard; // 分岐 or データハザードでEXをバブル
+    assign nop_Mem = 1'b0;
+    assign nop_WB  = 1'b0;
+
+
+
+    endmodule
+
+
+
+
+
+    /*assign nop_IF  = hazard_pype1 || hazard_pype2;
+    assign stall_ID  = hazard_pype1 || hazard_pype2;
+    assign stall_EX  = hazard_pype2;  // MEM段の競合時だけEXも止める
+    assign stall_Mem = 0;             // 現状は使わない（あとで追加してもOK）
+    assign stall_WB  = 0;
 
 endmodule
+*/

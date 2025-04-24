@@ -31,7 +31,7 @@ module mem_access(
     output reg RegWrite_pype3,
     output reg [1:0] MemtoReg_pype3,
     output reg [4:0] WReg_pype3,
-    output reg [31:0] ALU_co_w_pype,
+    output reg [31:0] ALU_co_pype3,
     output reg [31:0] PCp4_pype3,
 
     output [31:0]mem_data_pype,
@@ -64,7 +64,7 @@ always @(posedge clk) begin
         RegWrite_pype3 <= RegWrite_pype3;
         MemtoReg_pype3 <= MemtoReg_pype3;
         WReg_pype3 <= WReg_pype3;
-        ALU_co_w_pype <= ALU_co_w_pype;
+        ALU_co_pype3 <= ALU_co_pype3;
         PCp4_pype3 <= PCp4_pype3;
         branch_PC <= branch_PC;
         branch_PC_contral <= branch_PC_contral;
@@ -77,7 +77,7 @@ always @(posedge clk) begin
         RegWrite_pype3 <= 1'b0;
         MemtoReg_pype3 <= 2'b0;
         WReg_pype3 <= 5'b0;
-        ALU_co_w_pype <= 32'b0;
+        ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= PCp4_pype3;
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
@@ -90,7 +90,7 @@ always @(posedge clk) begin
         RegWrite_pype3 <= 1'b0;
         MemtoReg_pype3 <= 2'b0;
         WReg_pype3 <= 5'b0;
-        ALU_co_w_pype <= 32'b0;
+        ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
@@ -128,7 +128,8 @@ always @(posedge clk) begin
     //横流し
     PCp4_pype3 <= PCp4_pype2;
     WReg_pype3 <= WReg_pype2;
-    ALU_co_w_pype <= ALU_co_pype;
+    RegWrite_pype3 <= RegWrite_pype2;
+    ALU_co_pype3 <= ALU_co_pype;
     //MemRW_pype3 <= MemRW_pype2;
     //if (|MemRW_pype3) MemRW_pype3 <= MemRW_pype3;
 

@@ -44,7 +44,7 @@ module execute(
     output branch_PC*/
     //stall関連はまだ
 );
-
+reg Regwrite_delay;
 
 wire [3:0] ALU_control;
 
@@ -129,13 +129,13 @@ always @(posedge clk) begin
         ALU_co_pype <= 32'b0;
         PCBranch_pype <= 32'b0;
         read_data2_pype2 <= 32'b0;
-        PCp4_pype2 <= PCp4_pype2;
+        PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
         RegWrite_pype2 <= 1'b0;
         MemtoReg_pype2 <= 2'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
-        Instraction_pype2 <= Instraction_pype2;
+        Instraction_pype2 <= 32'b0;
     end
 
     else if (!rst) begin
@@ -148,7 +148,7 @@ always @(posedge clk) begin
         MemtoReg_pype2 <= 2'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
-        Instraction_pype2 <= Instraction_pype2;
+        Instraction_pype2 <= 32'b0;
     end
 
 
@@ -189,13 +189,20 @@ always @(posedge clk) begin
     endcase
 
     PCp4_pype2 <= PCp4_pype1;
-
     WReg_pype2 <= WReg_pype;
-    RegWrite_pype2 <= RegWrite_pype1;
     MemtoReg_pype2 <= MemtoReg_pype1;
     MemRW_pype2 <= MemRW_pype1;
     MemBranch_pype2 <= MemBranch_pype;
     Instraction_pype2 <= Instraction_pype1;
+    RegWrite_pype2 <= RegWrite_pype1;
+
+     // 1クロック遅延用のレジスタに先に入れる
+    Regwrite_delay <= RegWrite_pype1;
+
+    // WReg_pype2 は delayレジスタ経由で更新
+    //RegWrite_pype2 <= Regwrite_delay;
+
+    //RegWrite_pype2 <= RegWrite_pype1;
 
 end
 end
