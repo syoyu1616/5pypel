@@ -69,7 +69,9 @@ module decode (
 	wire [31:0] imm_U;
 		assign imm_U = {Instraction_pype[31:12], 12'b0};
 	wire [31:0] imm_J;
-		assign imm_J = {{11{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};
+        assign imm_J = {{20{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};
+    
+		//assign imm_J = {{11{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};
 
     wire [2:0] funct3;
     wire [6:0] funct7;
@@ -348,6 +350,7 @@ module decode (
         PC_pype1 <= PC_pype0;
         PCp4_pype1 <= PCp4_pype0;
         ALU_command_7 <= funct7;
+        Instraction_pype1 <= Instraction_pype;
 
 
         // fence/fence.i

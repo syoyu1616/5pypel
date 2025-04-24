@@ -14,6 +14,8 @@ module execute(
     input [3:0] for_ALU_c,
     input [4:0] WReg_pype,
 
+    input [31:0] Instraction_pype1,
+
     //制御線
     input RegWrite_pype1,
     input [1:0] MemtoReg_pype1,
@@ -32,7 +34,9 @@ module execute(
     output reg RegWrite_pype2,
     output reg [1:0] MemtoReg_pype2,
     output reg [1:0] MemRW_pype2,
-    output reg [2:0] MemBranch_pype2
+    output reg [2:0] MemBranch_pype2,
+
+    output reg [31:0] Instraction_pype2
 
 
     //fecheへのバック regかはまだわからん 4/18
@@ -117,6 +121,8 @@ always @(posedge clk) begin
         MemtoReg_pype2 <= MemtoReg_pype2;
         MemRW_pype2 <= MemRW_pype2;
         MemBranch_pype2 <= MemBranch_pype2;
+        Instraction_pype2 <= Instraction_pype2;
+
     end
 
     else if (nop) begin
@@ -129,6 +135,7 @@ always @(posedge clk) begin
         MemtoReg_pype2 <= 2'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
+        Instraction_pype2 <= Instraction_pype2;
     end
 
     else if (!rst) begin
@@ -141,6 +148,7 @@ always @(posedge clk) begin
         MemtoReg_pype2 <= 2'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
+        Instraction_pype2 <= Instraction_pype2;
     end
 
 
@@ -164,8 +172,8 @@ always @(posedge clk) begin
 
     
     case(MemBranch_pype)
-            3'b100: PCBranch_pype = (read_data1_pype + Imm_pype) & 32'hffff_fffe;
-            default: PCBranch_pype = PC_pype1 + Imm_pype;
+            3'b100: PCBranch_pype = (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
+            default: PCBranch_pype = PC_pype1 + $signed(Imm_pype);
     endcase
 
     case(ALU_co_pype)
@@ -187,6 +195,7 @@ always @(posedge clk) begin
     MemtoReg_pype2 <= MemtoReg_pype1;
     MemRW_pype2 <= MemRW_pype1;
     MemBranch_pype2 <= MemBranch_pype;
+    Instraction_pype2 <= Instraction_pype1;
 
 end
 end

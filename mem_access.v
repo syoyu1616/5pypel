@@ -16,10 +16,12 @@ module mem_access(
     input [31:0] read_data2_pype2,
     input [4:0] WReg_pype2,
 
+    input [31:0] Instraction_pype2,
+
     //memへの入出力
-    output reg [31:0] daddr,
-    output reg dreq,
-    output reg dwrite,
+    output  [31:0] daddr,
+    output  dreq,
+    output  dwrite,
 
     input dready_n,
     input dbusy,
@@ -39,11 +41,17 @@ module mem_access(
 
     output reg [31:0] branch_PC,
     output reg branch_PC_contral,
-    output reg branch_nop
+    output reg branch_nop,
+
+    output reg [31:0] Instraction_pype3
 
 );
 
+//4/24 ロードが上手く待ててなさそうな問題について
 
+assign dreq = |MemRW_pype2;
+assign dwrite = MemRW_pype2[0];
+assign daddr = ALU_co_pype;
 
 
 assign ddata = (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
@@ -61,6 +69,7 @@ always @(posedge clk) begin
         branch_PC <= branch_PC;
         branch_PC_contral <= branch_PC_contral;
         branch_nop <= branch_nop;
+        Instraction_pype3 <= Instraction_pype3;
         //MemRW_pype3 <= MemRW_pype3;
     end
 
@@ -73,6 +82,7 @@ always @(posedge clk) begin
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
         branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
+        Instraction_pype3 <= Instraction_pype3;
         //MemRW_pype3 <= 2'b0;
     end
 
@@ -85,15 +95,16 @@ always @(posedge clk) begin
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
         branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
+        Instraction_pype3 <= Instraction_pype3;
         //MemRW_pype3 <= 2'b0;
     end
 
 
     //メモリアクセス 書くときに確定で1クロック
-    dreq <= |MemRW_pype2;
-    dwrite <= MemRW_pype2[0];
+//    dreq <= |MemRW_pype2;
+//    dwrite <= MemRW_pype2[0];
 
-    daddr <= ALU_co_pype;
+//    daddr <= ALU_co_pype;
 
     
 
@@ -120,6 +131,8 @@ always @(posedge clk) begin
     ALU_co_w_pype <= ALU_co_pype;
     //MemRW_pype3 <= MemRW_pype2;
     //if (|MemRW_pype3) MemRW_pype3 <= MemRW_pype3;
+
+    Instraction_pype3 <= Instraction_pype2;
     
 
 

@@ -23,7 +23,7 @@ module cache#(
 	parameter addr_width = 32,		//アドレスのビット幅
 	parameter cache_size = 16384,	//キャッシュの容量（バイト単位）
 	parameter block_size = 32,		//ブロックサイズ（バイト単位）
-	parameter assoc = 4,			//キャッシュの連想度
+	parameter assoc = 8,			//キャッシュの連想度
 	parameter stdout_addr = 32'hf000_0000,	//標準出力のアドレス
 	parameter exit_addr = 32'hff00_0000,	//終了アドレス
 //	parameter log_filename = "cachelog.dat",
