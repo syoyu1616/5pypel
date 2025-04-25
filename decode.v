@@ -35,10 +35,9 @@ module decode (
     /*  分岐しない 000
         eq 001
         noteq 010
-        jal 011
-        jalr 100
-        未満 (lt) 101
-        以上 (ge) 110
+        未満 (lt) 011
+        以上 (ge) 100
+        j系（飛ぶの確定） 111
     */
     output reg [2:0] ALU_control_pype,
     /* ALUを普通に使う　（加算減算シフト論理演算）000
@@ -97,7 +96,7 @@ module decode (
     assign read_data1_pype = read_data1;
     assign read_data2_pype = read_data2;
 
-    always @(posedge clk) begin
+    always @(posedge clk, negedge rst) begin
     
     // Stop(pause) CPU
     if (keep) begin
@@ -119,8 +118,8 @@ module decode (
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
         Instraction_pype1 <= Instraction_pype1;
-
     end
+
 
     // Pipeline Bubble(addi x0, x0, 0)
     else if (nop) begin
@@ -138,7 +137,6 @@ module decode (
         WReg_pype <= 5'b0;
 
         //PCやALU_controlの維持
-
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
         Instraction_pype1 <= Instraction_pype1;
@@ -162,7 +160,7 @@ module decode (
         //PCの維持
         PC_pype1 <= 32'b0;
         PCp4_pype1 <= 32'b0;
-        Instraction_pype1 <= Instraction_pype1;
+        Instraction_pype1 <= 32'b0;
 
     end
 
@@ -203,7 +201,7 @@ module decode (
             // jal
             `OP_JAL: begin
                 RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b10;
+                MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= `MEMB_JAL;
                 ALU_Src_pype <= 3'b100;
@@ -218,7 +216,7 @@ module decode (
             // jalr
             `OP_JALR: begin
                 RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b10;
+                MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= `MEMB_JAL;
                 ALU_Src_pype <= 3'b100;
@@ -232,7 +230,7 @@ module decode (
             // lb/lh/lw/lbu/lhu
             `OP_LOAD: begin
                 RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b01;
+                MemtoReg_pype1 <= `write_reg_memd;
                 MemRW_pype1 <= 2'b10;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
@@ -246,7 +244,7 @@ module decode (
             // addi/slti/sltiu/xori/ori/andi/slli/srli/srail
             `OP_ALUI: begin
                 RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b00;
+                MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b00;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
@@ -262,7 +260,7 @@ module decode (
             // beq/bne/blt/bge/bltu/bgeu
             `OP_BRA: begin
                 RegWrite_pype1 <= 0;
-                MemtoReg_pype1 <= 2'b00;
+                MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b00;
                 //MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b101;
@@ -303,7 +301,7 @@ module decode (
             7'b0100011: begin
 
                 RegWrite_pype1 <= 0;
-                MemtoReg_pype1 <= 2'b00;
+                MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b01;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b100;
@@ -318,7 +316,7 @@ module decode (
             // add/sub/sll/slt/sltu/xor/srl/sra/or/and
             7'b0110011: begin
                 RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b00;
+                MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b01;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b011;
@@ -352,8 +350,12 @@ module decode (
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
 
+    end
+end
 
-        // fence/fence.i
+endmodule
+
+       // fence/fence.i
             /*
             7'b0001111: begin
                 mem_command <= 5'b0;
@@ -387,8 +389,3 @@ module decode (
 
             // B Format
             // beq/bne/blt/bge/bltu/bgeu
-
-    end
-end
-
-endmodule

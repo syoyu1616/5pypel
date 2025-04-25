@@ -92,6 +92,10 @@
 `define INST_Sh  4'b0001
 `define INST_Sw  4'b0010
 
+`define write_reg_PCp4 2'b10
+`define write_reg_memd 2'b01
+`define write_reg_ALUc 2'b00
+
 
 
 /*

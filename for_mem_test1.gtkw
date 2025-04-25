@@ -1,47 +1,61 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Thu Apr 24 02:02:28 2025
+[*] Fri Apr 25 01:41:27 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Thu Apr 24 01:59:02 2025"
-[dumpfile_size] 18489344
+[dumpfile_mtime] "Fri Apr 25 01:34:27 2025"
+[dumpfile_size] 23687168
 [savefile] "/home/seigo/modules/programs/5pypel/for_mem_test1.gtkw"
-[timestart] 14374
+[timestart] 1093
 [size] 1000 600
 [pos] -1 -1
-*-4.000000 14380 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-5.000000 1109 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
 [sst_width] 352
-[signals_width] 214
+[signals_width] 238
 [sst_expanded] 1
 [sst_vpaned_height] 157
-@4022
-^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
-top_test.i_top.i_core.i_execute.Instraction_pype2[31:0]
-^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
-top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
 @28
-top_test.i_top.i_core.i_mem_access.MemRW_pype2[1:0]
 top_test.i_top.i_core.i_mem_access.dreq
 top_test.i_top.i_core.i_mem_access.dready_n
 top_test.i_top.i_core.i_mem_access.dbusy
 top_test.i_top.i_core.iready_n
-top_test.i_top.i_core.i_mem_access.keep
-top_test.i_top.i_core.write_hold
-top_test.i_top.i_core.write_triggered[1:0]
+top_test.i_top.i_core.noper_unit.mem_ac_stall
 top_test.i_top.i_core.clk
-@22
-top_test.i_top.i_core.daddr[31:0]
-top_test.i_top.i_core.ddata[31:0]
-top_test.i_top.i_core.i_fetch.branch_PC[31:0]
-@4023
+@4022
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_execute.Instraction_pype1[31:0]
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_mem_access.Instraction_pype2[31:0]
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
+@28
+top_test.i_top.i_core.noper_unit.hazard_pype3
+top_test.i_top.i_core.noper_unit.nop_ID
 @22
-top_test.i_top.i_core.i_execute.Imm_pype[31:0]
-top_test.i_top.i_core.i_execute.PC_pype1[31:0]
-top_test.i_top.i_core.i_execute.PCBranch_pype[31:0]
+top_test.i_top.i_core.noper_unit.WReg_pype3[4:0]
+@28
+top_test.i_top.i_core.noper_unit.RegWrite_pype3
+@22
+top_test.i_top.i_core.i_writeback.write_reg_data[31:0]
+top_test.i_top.i_core.i_regfile.in[31:0]
+top_test.i_top.i_core.i_regfile.rd[4:0]
+@28
+top_test.i_top.i_core.i_regfile.write_n
+@22
+top_test.i_top.i_core.i_regfile.out1[31:0]
+top_test.i_top.i_core.i_regfile.out2[31:0]
+top_test.i_top.i_core.i_regfile.rs1[4:0]
+@23
+top_test.i_top.i_core.i_regfile.rs2[4:0]
+@22
+top_test.i_top.i_core.noper_unit.fornop_register1_pype[4:0]
+top_test.i_top.i_core.i_mem_access.ALU_co_pype[31:0]
+top_test.i_top.i_core.i_execute.read_data1_pype[31:0]
+top_test.i_top.i_core.i_execute.read_data2_pype[31:0]
 [pattern_trace] 1
 [pattern_trace] 0
