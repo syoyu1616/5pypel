@@ -86,44 +86,6 @@ noper noper_unit (
 );
 
 
-    /*wire stall; //メモリアクセスによるストールの管理
-    //assign stall = iready_n || (dready_n && MemRW_pype3[1]) || (dbusy && MemRW_pype3[0])|| (dbusy_e && MemRW_pype3);//dbusyが1クロック遅れる（書き込むとき限定で1クロック挟む？）
-    //案1　このためにMEMRW_pyep3を作り、そこで止めてもらう
-    //案2　疑似的なdbusyを作り、1クロックだけ止める
-    reg write_hold;
-    reg [1:0]write_triggered;
-
-    always @(posedge clk) begin
-    if (!rst) begin
-        write_hold <= 0;
-        write_triggered <= 0;
-    end
-    else if (MemRW_pype2[0] && !write_triggered) begin
-        write_hold <= 1'b1;             // 書き込み命令が来た瞬間に1にする
-        write_triggered <= 2'b10;        // 1クロックだけトリガー
-    end
-
-    else if (MemRW_pype2[0] && write_triggered[1]) begin
-        write_hold <= 1;
-        write_triggered <= 2'b01;
-    end
-
-    else if (MemRW_pype2[0] && write_triggered[0]) begin
-        write_hold <= 0;
-        write_triggered <= 0;
-    end
-
-    else if (!MemRW_pype2[0]) begin
-        write_triggered <= 0;
-        write_hold <= 0;
-    end
-
-    else begin
-        write_hold <= 0;             // 次のクロックで戻す
-        
-    end
-end
-
     assign stall = iready_n || (dready_n && MemRW_pype2[1]) || dbusy || write_hold;*/
 
 
