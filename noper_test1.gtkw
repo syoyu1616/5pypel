@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Fri Apr 25 07:08:45 2025
+[*] Fri Apr 25 08:49:32 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Fri Apr 25 07:02:52 2025"
-[dumpfile_size] 33300480
+[dumpfile_mtime] "Fri Apr 25 08:45:56 2025"
+[dumpfile_size] 20234240
 [savefile] "/home/seigo/modules/programs/5pypel/noper_test1.gtkw"
-[timestart] 2158
+[timestart] 8906
 [size] 1000 600
 [pos] -1 -1
-*-7.000000 2298 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-3.900000 8920 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
@@ -30,8 +30,19 @@ top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
 top_test.i_top.i_core.i_mem_access.MemBranch_pype2[2:0]
 @22
 top_test.i_top.i_core.i_mem_access.PCBranch_pype2[31:0]
+@23
 top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@22
 top_test.i_top.i_core.i_fetch.idata[31:0]
+top_test.i_top.i_core.i_fetch.branch_PC[31:0]
+@28
+top_test.i_top.i_core.i_fetch.branch_PC_contral
+top_test.i_top.i_core.i_execute.MemtoReg_pype1[1:0]
+top_test.i_top.i_core.i_execute.MemtoReg_pype2[1:0]
+top_test.i_top.i_core.i_mem_access.MemtoReg_pype3[1:0]
+@22
+top_test.i_top.i_core.i_writeback.write_reg_address[4:0]
+top_test.i_top.i_core.i_writeback.write_reg_data[31:0]
 @28
 top_test.i_top.i_core.noper_unit.nop_IF
 top_test.i_top.i_core.noper_unit.nop_ID
@@ -44,7 +55,5 @@ top_test.i_top.i_core.noper_unit.mem_ac_stall
 top_test.i_top.i_core.noper_unit.iready_n
 top_test.i_top.i_core.noper_unit.dbusy
 top_test.i_top.i_core.noper_unit.dready_n
-@29
-top_test.i_top.i_core.noper_unit.write_hold
 [pattern_trace] 1
 [pattern_trace] 0

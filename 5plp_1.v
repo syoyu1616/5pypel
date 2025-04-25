@@ -68,6 +68,7 @@ noper noper_unit (
     .iready_n(iready_n),
     .dready_n(dready_n),
     .dbusy(dbusy),
+    .MemRW_pype1(MemRW_pype1),
     .MemRW_pype2(MemRW_pype2),
 
     // 出力: stall制御
@@ -84,10 +85,6 @@ noper noper_unit (
     .nop_Mem (nop_Mem),
     .nop_WB  (nop_WB)
 );
-
-
-    assign stall = iready_n || (dready_n && MemRW_pype2[1]) || dbusy || write_hold;*/
-
 
     //fetch
     wire branch_PC_early_contral, branch_PC_contral;

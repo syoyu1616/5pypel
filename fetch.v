@@ -40,8 +40,8 @@ always @(*) begin
             iaddr_next = branch_PC_early;
         else if (branch_PC_contral)
             iaddr_next = branch_PC;
-        else
-            iaddr_next = iaddr;
+        /*else
+            iaddr_next = iaddr;*/
 
     end else if (!rst) begin
         iaddr_next = 32'h0001_0000;

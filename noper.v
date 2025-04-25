@@ -37,6 +37,7 @@ module noper(
     input iready_n,
     input dready_n,
     input dbusy,
+    input [1:0] MemRW_pype1,
     input [1:0] MemRW_pype2,
    
     output wire stall_IF,
@@ -73,7 +74,7 @@ module noper(
     
     //案1　このためにMEMRW_pyep3を作り、そこで止めてもらう
     //案2　疑似的なdbusyを作り、1クロックだけ止める
-    reg write_hold;
+    /*reg write_hold;
     reg [1:0]write_triggered;
 
     always @(posedge clk, negedge rst) begin
@@ -81,22 +82,22 @@ module noper(
         write_hold <= 0;
         write_triggered <= 0;
     end
-    else if (MemRW_pype2[0] && !write_triggered) begin
+    else if (MemRW_pype1[0] && !write_triggered) begin
         write_hold <= 1'b1;             // 書き込み命令が来た瞬間に1にする
         write_triggered <= 2'b10;        // 1クロックだけトリガー
     end
 
-    else if (MemRW_pype2[0] && write_triggered[1]) begin
+    else if (MemRW_pype1[0] && write_triggered[1]) begin
         write_hold <= 1;
         write_triggered <= 2'b01;
     end
 
-    else if (MemRW_pype2[0] && write_triggered[0]) begin
+    else if (MemRW_pype1[0] && write_triggered[0]) begin
         write_hold <= 0;
         write_triggered <= 0;
     end
 
-    else if (!MemRW_pype2[0]) begin
+    else if (!MemRW_pype1[0]) begin
         write_triggered <= 0;
         write_hold <= 0;
     end
@@ -105,9 +106,11 @@ module noper(
         write_hold <= 0;             // 次のクロックで戻す
         
     end
-end
+end*/
 
-    assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || dbusy || write_hold;
+//cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
+
+    assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
 
     // stall制御：データハザードがあるときは、IF/IDを止める（EXにはnopを入れる）
     /*assign stall_IF  = hazard || mem_ac_stall;
@@ -117,14 +120,13 @@ end
     assign stall_ID  = mem_ac_stall || hazard_pype3;
     assign stall_EX  = mem_ac_stall;
     assign stall_Mem = mem_ac_stall;
-    assign stall_WB  = mem_ac_stall;
+    assign stall_WB  = 0;
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
-    assign nop_IF  = mem_ac_stall || hazard_pype1 || hazard_pype2 || hazard_pype3;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
+    assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1 || hazard_pype2 || hazard_pype3;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
     assign nop_ID  = branch_PC_contral || hazard_pype1 || hazard_pype2;  // 分岐成立でIDの命令潰す
     assign nop_EX  = branch_PC_contral || hazard_pype2; // 分岐 or データハザードでEXをバブル
-    //assign nop_Mem = 1'b0;
-    assign nop_Mem = branch_PC_contral || hazard_pype2;
+    assign nop_Mem = 0;
     assign nop_WB  = 1'b0;
 
 

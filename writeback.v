@@ -28,5 +28,7 @@ assign Regwrite = ~RegWrite_pype3;
 
 assign write_reg_address = WReg_pype3;
 
+//memtoregの伝達が途中で止まってるせいでwriteが上手くいってない
+
 
 endmodule

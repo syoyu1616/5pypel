@@ -129,7 +129,7 @@ always @(posedge clk, negedge rst) begin
     //if (|MemRW_pype3) MemRW_pype3 <= MemRW_pype3;
 
     Instraction_pype3 <= Instraction_pype2;
-    
+    MemtoReg_pype3 <= MemtoReg_pype2;
 
 
 end
