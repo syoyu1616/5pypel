@@ -10,7 +10,7 @@ module mem_access(
     input [1:0] MemtoReg_pype2,
     input [1:0] MemRW_pype2,
 
-    input [31:0] PCBranch_pype,
+    input [31:0] PCBranch_pype2,
     input [31:0] PCp4_pype2,
     input [31:0] ALU_co_pype,
     input [31:0] read_data2_pype2,
@@ -59,7 +59,7 @@ assign ddata = (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
 assign mem_data_pype = ddata;
 
 //dready はop load  の時だけ止めさせるようにする
-always @(posedge clk) begin
+always @(posedge clk, negedge rst) begin
     if (keep) begin
         RegWrite_pype3 <= RegWrite_pype3;
         MemtoReg_pype3 <= MemtoReg_pype3;
@@ -95,19 +95,14 @@ always @(posedge clk) begin
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
         branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
-        Instraction_pype3 <= Instraction_pype3;
+        Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
     end
-
-
     //メモリアクセス 書くときに確定で1クロック
 //    dreq <= |MemRW_pype2;
 //    dwrite <= MemRW_pype2[0];
 
 //    daddr <= ALU_co_pype;
-
-    
-
     //branch
     //Membranch_pype2が`MEMB_BEQかつALU_co_pypeが0, MemBranch_pyep2が`MEMB_BNEかつALU_co_pypeが0でないのどちらかなら1、それ以外は0
 
@@ -116,7 +111,7 @@ always @(posedge clk) begin
     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
     (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype == 32'b1 ) ||
     (MemBranch_pype2 == `MEMB_JAL)) begin
-        branch_PC <= PCBranch_pype;
+        branch_PC <= PCBranch_pype2;
         branch_PC_contral <= 1;
         branch_nop <= 1;  // これで次の命令をnopに
     end else begin

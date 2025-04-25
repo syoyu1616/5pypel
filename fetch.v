@@ -27,9 +27,9 @@ module fetch (
 );
 
 //assign Instraction_pype = idata;
-assign Instraction_pype = nop ? 32'b0000000000000000000000000001001 : idata;//is_nop周りはまだ未変更
-assign fornop_register1_pype = idata[11:7];
-assign fornop_register2_pype = idata[24:20];//register2の値がない命令についてはまだ未定 早期分岐じゃないなら基本いらないかも
+assign Instraction_pype = /*nop ? 32'b0000000000000000000000000001001 :*/ idata;//is_nop周りはまだ未変更
+assign fornop_register1_pype = /*nop ? 5'b10000 : */idata[19:15];
+assign fornop_register2_pype = /*nop ? 5'b10000 : */idata[24:20];//register2の値がない命令についてはまだ未定 早期分岐じゃないなら基本いらないかも
 
 //PC_pypeの同期のために用意してる。分岐の際にどう振舞うかは注意
 reg [31:0] iaddr_next;

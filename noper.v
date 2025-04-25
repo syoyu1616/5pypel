@@ -27,6 +27,9 @@ module noper(
     input [4:0] WReg_pype3,
     input RegWrite_pype3,
 
+    input [4:0] write_reg_address,
+    input Regwrite,
+
     //分岐成立
     input branch_PC_contral,
 
@@ -55,10 +58,13 @@ module noper(
     wire hazard_pype2 = RegWrite_pype2 && (WReg_pype2 != 0) &&
                         ((WReg_pype2 == fornop_register1_pype) || (WReg_pype2 == fornop_register2_pype));
 
-    wire hazard_pype3 = RegWrite_pype3 && (WReg_pype3 != 0) &&
-                        ((WReg_pype3 == fornop_register1_pype) || (WReg_pype3 == fornop_register2_pype));
-    
-    wire hazard = (rst) ? (hazard_pype1 || hazard_pype2 || hazard_pype3) : 1'b0;
+    //wire hazard_pype3 = RegWrite_pype3 && (WReg_pype3 != 0) &&
+                        //((WReg_pype3 == fornop_register1_pype) || (WReg_pype3 == fornop_register2_pype));
+
+    wire hazard_pype3 = Regwrite && (write_reg_address != 0) &&
+                        ((write_reg_address == fornop_register1_pype) || (write_reg_address == fornop_register2_pype));//特に変わってなさそう
+    //regに書き込めてない？
+    wire hazard = (rst) ? (hazard_pype1 || hazard_pype2 ) : 1'b0;
 
     //wire hazard = hazard_pype1 || hazard_pype2; //|| hazard_pype3;
 
@@ -69,7 +75,7 @@ module noper(
     reg write_hold;
     reg [1:0]write_triggered;
 
-    always @(posedge clk) begin
+    always @(posedge clk, negedge rst) begin
     if (!rst) begin
         write_hold <= 0;
         write_triggered <= 0;
@@ -106,17 +112,18 @@ end
     /*assign stall_IF  = hazard || mem_ac_stall;
     assign stall_ID  = hazard || mem_ac_stall;
     assign stall_EX  = hazard_pype2 ||mem_ac_stall;*/
-    assign stall_IF  = mem_ac_stall;
-    assign stall_ID  = mem_ac_stall;
-    assign stall_EX  = mem_ac_stall;
+    assign stall_IF  = 0;//mem_ac_stall || hazard || hazard_pype3;
+    assign stall_ID  = mem_ac_stall || hazard_pype3;
+    assign stall_EX  = mem_ac_stall || hazard;
     assign stall_Mem = mem_ac_stall;
     assign stall_WB  = mem_ac_stall;
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
-    assign nop_IF  = hazard; //1'b0; // IFには基本nop入れない（IFは止めるだけ）
-    assign nop_ID  = branch_PC_contral || hazard;  // 分岐成立でIDの命令潰す
-    assign nop_EX  = branch_PC_contral || hazard_pype2;// || hazard; // 分岐 or データハザードでEXをバブル
-    assign nop_Mem = 1'b0;
+    assign nop_IF  = mem_ac_stall || hazard || hazard_pype3;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
+    assign nop_ID  = branch_PC_contral || hazard_pype1;  // 分岐成立でIDの命令潰す
+    assign nop_EX  = branch_PC_contral || hazard_pype2; // 分岐 or データハザードでEXをバブル
+    //assign nop_Mem = 1'b0;
+    assign nop_Mem = branch_PC_contral;
     assign nop_WB  = 1'b0;
 
 

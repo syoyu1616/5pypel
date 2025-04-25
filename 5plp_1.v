@@ -58,6 +58,9 @@ noper noper_unit (
     .RegWrite_pype2 (RegWrite_pype2),
     .RegWrite_pype3 (RegWrite_pype3),
 
+    .Regwrite    (Regwrite),
+    .write_reg_address  (write_reg_address),
+
     // 分岐成立
     .branch_PC_contral (branch_PC_contral),
 
@@ -166,7 +169,7 @@ end
     .MemRW_pype1(MemRW_pype1), .MemBranch_pype(MemBranch_pype), .ALU_control_pype(ALU_control_pype), .ALU_Src_pype(ALU_Src_pype),
     .ALU_command_7(ALU_command_7), .Instraction_pype1(Instraction_pype1));
 
-    wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype;
+    wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype2;
     wire [4:0] WReg_pype2;
     wire [2:0] MemBranch_pype2;
     wire [1:0] MemtoReg_pype2, MemRW_pype2;
@@ -182,7 +185,7 @@ end
     .RegWrite_pype1(RegWrite_pype1), .MemtoReg_pype1(MemtoReg_pype1), 
     .MemRW_pype1(MemRW_pype1),
     .MemBranch_pype(MemBranch_pype), .ALU_control_pype(ALU_control_pype), .ALU_Src_pype(ALU_Src_pype), .ALU_command_7(ALU_command_7),
-    .PCBranch_pype(PCBranch_pype), 
+    .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), .ALU_co_pype(ALU_co_pype), .read_data2_pype2(read_data2_pype2), .WReg_pype2(WReg_pype2),
     .RegWrite_pype2(RegWrite_pype2), .MemtoReg_pype2(MemtoReg_pype2), .MemRW_pype2(MemRW_pype2), .MemBranch_pype2(MemBranch_pype2),
     .Instraction_pype2(Instraction_pype2));
@@ -197,7 +200,7 @@ end
     mem_access i_mem_access (.rst(rst), .clk(clk), .keep(stall_Mem), .nop(nop_Mem), 
     .RegWrite_pype2 (RegWrite_pype2),
     .MemBranch_pype2 (MemBranch_pype2), .MemtoReg_pype2 (MemtoReg_pype2), .MemRW_pype2 (MemRW_pype2),
-    .PCBranch_pype(PCBranch_pype), .PCp4_pype2(PCp4_pype2), 
+    .PCBranch_pype2(PCBranch_pype2), .PCp4_pype2(PCp4_pype2), 
     .ALU_co_pype(ALU_co_pype), .read_data2_pype2(read_data2_pype2),
     .WReg_pype2 (WReg_pype2), .Instraction_pype2(Instraction_pype2), 
     .daddr (daddr), .dreq(dreq), .dwrite(dwrite), .dready_n(dready_n), 

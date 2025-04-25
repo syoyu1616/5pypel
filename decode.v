@@ -35,10 +35,9 @@ module decode (
     /*  分岐しない 000
         eq 001
         noteq 010
-        jal 011
-        jalr 100
-        未満 (lt) 101
-        以上 (ge) 110
+        未満 (lt) 011
+        以上 (ge) 100
+        j系（飛ぶの確定） 111
     */
     output reg [2:0] ALU_control_pype,
     /* ALUを普通に使う　（加算減算シフト論理演算）000
@@ -97,7 +96,7 @@ module decode (
     assign read_data1_pype = read_data1;
     assign read_data2_pype = read_data2;
 
-    always @(posedge clk) begin
+    always @(posedge clk, negedge rst) begin
     
     // Stop(pause) CPU
     if (keep) begin
@@ -138,10 +137,9 @@ module decode (
         WReg_pype <= 5'b0;
 
         //PCやALU_controlの維持
-
-        PC_pype1 <= 32'b0;
-        PCp4_pype1 <= 32'b0;
-        Instraction_pype1 <= 32'b0;
+        PC_pype1 <= PC_pype1;
+        PCp4_pype1 <= PCp4_pype1;
+        Instraction_pype1 <= Instraction_pype1;
 
     end
 
