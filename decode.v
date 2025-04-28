@@ -13,8 +13,11 @@ module decode (
     input [31:0] read_data1,
     input [31:0] read_data2,//registerからのね
 
-    output [31:0] read_data1_pype,
-    output [31:0] read_data2_pype,
+    /*output [31:0] read_data1_pype,
+    output [31:0] read_data2_pype,*/
+
+    output reg [31:0] read_data1_pype,
+    output reg [31:0] read_data2_pype,
 
     output [4:0] read_reg1,
     output [4:0] read_reg2,
@@ -93,8 +96,8 @@ module decode (
     assign read_reg1 = Instraction_pype[19:15];
     assign read_reg2 = Instraction_pype[24:20];
 
-    assign read_data1_pype = read_data1;
-    assign read_data2_pype = read_data2;
+    /*assign read_data1_pype = read_data1;
+    assign read_data2_pype = read_data2;*/
 
     always @(posedge clk, negedge rst) begin
     
@@ -107,6 +110,9 @@ module decode (
         MemBranch_pype <= MemBranch_pype;
         ALU_Src_pype <= ALU_Src_pype;
         ALU_control_pype <= ALU_control_pype;
+
+        read_data1_pype <= read_data1_pype;
+        read_data2_pype <= read_data2_pype;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -131,6 +137,9 @@ module decode (
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
 
+        read_data1_pype <= 32'b0;
+        read_data2_pype <= 32'b0;
+
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
         for_ALU_c <= 4'b0;
@@ -139,7 +148,7 @@ module decode (
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
-        Instraction_pype1 <= Instraction_pype1;
+        Instraction_pype1 <= 32'b0; //これ維持しても意味なくないか？;
 
     end
 
@@ -151,6 +160,9 @@ module decode (
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
+
+        read_data1_pype <= 32'b0;
+        read_data2_pype <= 32'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -219,7 +231,7 @@ module decode (
                 MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= `MEMB_JAL;
-                ALU_Src_pype <= 3'b100;
+                ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_j;
 
                 Imm_pype <= $signed(imm_I);
@@ -263,7 +275,7 @@ module decode (
                 MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b00;
                 //MemBranch_pype <= 3'b000;
-                ALU_Src_pype <= 3'b101;
+                ALU_Src_pype <= 3'b011;
                 ALU_control_pype <= `ALU_co_pype_coo;
 
                 Imm_pype <= $signed(imm_B);
@@ -349,6 +361,12 @@ module decode (
         PCp4_pype1 <= PCp4_pype0;
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
+
+        read_data1_pype <= read_data1;
+        read_data2_pype <= read_data2;
+        
+
+        
 
     end
 end

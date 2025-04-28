@@ -1,0 +1,47 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Mon Apr 28 07:32:31 2025
+[*]
+[dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
+[dumpfile_mtime] "Mon Apr 28 07:24:41 2025"
+[dumpfile_size] 31850496
+[savefile] "/home/seigo/modules/programs/5pypel/after2_RWhazard.gtkw"
+[timestart] 2257
+[size] 1000 600
+[pos] -1 -1
+*-4.600000 2280 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top_test.
+[treeopen] top_test.i_top.
+[treeopen] top_test.i_top.i_core.
+[sst_width] 352
+[signals_width] 238
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@22
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@4022
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_fetch.idata[31:0]
+@4023
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
+@4022
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_execute.Instraction_pype1[31:0]
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_execute.Instraction_pype2[31:0]
+@28
+top_test.i_top.i_core.noper_unit.nop_IF
+top_test.i_top.i_core.noper_unit.nop_ID
+top_test.i_top.i_core.noper_unit.nop_EX
+top_test.i_top.i_core.noper_unit.hazard_pype1
+top_test.i_top.i_core.noper_unit.hazard_pype2
+top_test.i_top.i_core.noper_unit.hazard_pype3
+@22
+top_test.i_top.i_core.noper_unit.fornop_register1_pype[4:0]
+top_test.i_top.i_core.noper_unit.fornop_register2_pype[4:0]
+top_test.i_top.i_core.noper_unit.WReg_pype[4:0]
+top_test.i_top.i_core.noper_unit.WReg_pype2[4:0]
+top_test.i_top.i_core.noper_unit.WReg_pype3[4:0]
+[pattern_trace] 1
+[pattern_trace] 0

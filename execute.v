@@ -81,7 +81,7 @@ assign ALU_control =
 
 
 //ALUに入れるやつの条件付け
-reg [31:0] ALU_data1, ALU_data2;
+/*reg [31:0] ALU_data1, ALU_data2;
 
 always @(*) begin
     case (ALU_Src_pype[2:1])
@@ -96,7 +96,26 @@ always @(*) begin
         `ALU_Src_d2_p:   ALU_data2 = read_data2_pype;
         default:         ALU_data2 = 32'bx;
     endcase
-end
+end*/
+/*
+wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == `ALU_Src_d1_0)  ? 32'b0 :
+                        (ALU_Src_pype[2:1] == `ALU_Src_d1_p)  ? read_data1_pype :
+                        (ALU_Src_pype[2:1] == `ALU_Src_d1_PC) ? PC_pype1 :
+                        32'bx;
+
+wire [31:0] ALU_data2 = (ALU_Src_pype[0] == `ALU_Src_d2_Im) ? Imm_pype :
+                        (ALU_Src_pype[0] == `ALU_Src_d2_p)  ? read_data2_pype :
+                        32'bx;
+
+*/
+wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
+                        (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
+                        (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
+                        32'bx;
+
+wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
+                        (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
+                        32'bx;
 
 
 /*wire branch_PC_wire
@@ -135,7 +154,7 @@ always @(posedge clk, negedge rst) begin
         MemtoReg_pype2 <= 2'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
-        Instraction_pype2 <= Instraction_pype2;
+        Instraction_pype2 <= 32'b0;
     end
 
     else if (!rst) begin
@@ -172,18 +191,24 @@ always @(posedge clk, negedge rst) begin
 
     
     case(MemBranch_pype)
-            3'b100: PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
+            3'b100: begin
+            case(for_ALU_c)
+                4'b0001: PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
+            endcase
+            end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
     endcase
 
-    case(ALU_co_pype)
+
+    case(ALU_control_pype)
         `ALU_co_pype_store: begin
             case(for_ALU_c)
             `INST_Sb: read_data2_pype2 <= {31'b0, read_data2_pype[0]};
             `INST_Sh: read_data2_pype2 <= {30'b0, read_data2_pype[1:0]};
             `INST_Sw: read_data2_pype2 <= {28'b0, read_data2_pype[3:0]};
-        endcase
+            endcase
         end
+    
         default: read_data2_pype2 <= read_data1_pype;
 
     endcase

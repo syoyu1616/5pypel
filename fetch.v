@@ -27,98 +27,54 @@ module fetch (
 );
 
 //assign Instraction_pype = idata;
-assign Instraction_pype = /*nop ? 32'b0000000000000000000000000001001 :*/ idata;//is_nop周りはまだ未変更
+assign Instraction_pype = nop ? 32'b0000000000000000000000000001001:idata;//is_nop周りはまだ未変更
 assign fornop_register1_pype = /*nop ? 5'b10000 : */idata[19:15];
 assign fornop_register2_pype = /*nop ? 5'b10000 : */idata[24:20];//register2の値がない命令についてはまだ未定 早期分岐じゃないなら基本いらないかも
 
-//PC_pypeの同期のために用意してる。分岐の際にどう振舞うかは注意
-reg [31:0] iaddr_next;
-
-always @(*) begin
-    if (nop) begin
-        if (branch_PC_early_contral)
-            iaddr_next = branch_PC_early;
-        else if (branch_PC_contral)
-            iaddr_next = branch_PC;
-        /*else
-            iaddr_next = iaddr;*/
-
-    end else if (!rst) begin
-        iaddr_next = 32'h0001_0000;
-
-    end else begin
-        if (branch_PC_early_contral)
-            iaddr_next = branch_PC_early;
-        else if (branch_PC_contral)
-            iaddr_next = branch_PC;
-        else
-            iaddr_next = iaddr + 4;
-    end
-end
+    reg [31:0] next_iaddr;
+    reg [31:0] next_PC_pype0;
+    reg [31:0] next_PCp4_pype0;
 
 always @(posedge clk) begin
-    if (keep) begin
-        PC_pype0     <= PC_pype0;
-        PCp4_pype0   <= PCp4_pype0;
-        iaddr        <= iaddr; //または何も代入しないでもOK
-    end else begin
-        PC_pype0     <= iaddr_next;
-        PCp4_pype0   <= iaddr_next + 4;
-        iaddr        <= iaddr_next;
+
+
+    if (!rst) begin
+        next_iaddr = 32'h0001_0000;
+        next_PC_pype0 = 32'h0001_0000;
+        next_PCp4_pype0 = 32'h0001_0004;
     end
-end
-
-
-/*always @(posedge clk) begin
-    // keep 
-
-    
-    if (keep) begin
-        PC_pype0 <= PC_pype0;
-        PCp4_pype0 <= PCp4_pype0;
-    
+    else if (keep) begin
+        next_iaddr = iaddr;
+        next_PC_pype0 = PC_pype0;
+        next_PCp4_pype0 = PCp4_pype0;
     end
 
-    else if (iready_n) begin //準備完了（0）になるまで値を維持
-        PC_pype0 <= PC_pype0;
-        PCp4_pype0 <= PCp4_pype0;
-        iaddr <= iaddr;
-    end
-
-    // Pipeline nop(addi x0, x0, 0)
     else if (nop) begin
-        PC_pype0 <= PC_pype0;
-        PCp4_pype0 <= PCp4_pype0;
-
         if (branch_PC_early_contral)
-            iaddr <= branch_PC_early;
+            next_iaddr = branch_PC_early;
         else if (branch_PC_contral)
-            iaddr <= branch_PC;
+            next_iaddr = branch_PC;
         else
-            iaddr <= iaddr;
-    end
+            next_iaddr = iaddr;
 
-    // Reset
-    else if (!rst) begin
-        PC_pype0 <= 32'h0001_0000;
-        PCp4_pype0 <= 32'h0001_0004;
-        iaddr <= 32'h0001_0000;//10000から変えてみた
+        next_PC_pype0 = PC_pype0;
+        next_PCp4_pype0 = PCp4_pype0;
     end
-
-    // Normal Fetch
     else begin
-        PC_pype0 <= iaddr;//
-        PCp4_pype0 <= iaddr + 32'd4;
-
-    if (branch_PC_early_contral)
-            iaddr <= branch_PC_early;
+        if (branch_PC_early_contral)
+            next_iaddr = branch_PC_early;
         else if (branch_PC_contral)
-            iaddr <= branch_PC;
-        else    
-        iaddr <= iaddr + 32'd4;
+            next_iaddr = branch_PC;
+        else
+            next_iaddr = iaddr + 32'd4;
+            next_PC_pype0 = next_iaddr;
+            next_PCp4_pype0 = next_iaddr + 32'd4;
     end
 
-
-end*/
+    // 最後にまとめて代入！
+    iaddr <= next_iaddr;
+    PC_pype0 <= next_PC_pype0;
+    PCp4_pype0 <= next_PCp4_pype0;
+end
 
 endmodule

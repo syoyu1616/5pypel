@@ -3,7 +3,6 @@
 */
 
 `include "regfile.v"
-
 //`include "fetch.v" 
 //`include "decode.v" 
 //`include "execute.v"
@@ -52,11 +51,12 @@ noper noper_unit (
 
     // 書き込み情報（EX, MEM, WBステージ）
     .WReg_pype     (WReg_pype),
-    .WReg_pype2    (WReg_pype2),
+    //.WReg_pype2    (WReg_pype2),
     .WReg_pype3    (WReg_pype3),
     .RegWrite_pype1 (RegWrite_pype1),
-    .RegWrite_pype2 (RegWrite_pype2),
+    //.RegWrite_pype2 (RegWrite_pype2),
     .RegWrite_pype3 (RegWrite_pype3),
+    .Instraction_pype (Instraction_pype),
 
     .Regwrite    (Regwrite),
     .write_reg_address  (write_reg_address),

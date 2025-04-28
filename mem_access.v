@@ -60,33 +60,8 @@ assign mem_data_pype = ddata;
 
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk, negedge rst) begin
-    if (keep) begin
-        RegWrite_pype3 <= RegWrite_pype3;
-        MemtoReg_pype3 <= MemtoReg_pype3;
-        WReg_pype3 <= WReg_pype3;
-        ALU_co_pype3 <= ALU_co_pype3;
-        PCp4_pype3 <= PCp4_pype3;
-        branch_PC <= branch_PC;
-        branch_PC_contral <= branch_PC_contral;
-        branch_nop <= branch_nop;
-        Instraction_pype3 <= Instraction_pype3;
-        //MemRW_pype3 <= MemRW_pype3;
-    end
 
     if (nop) begin
-        RegWrite_pype3 <= 1'b0;
-        MemtoReg_pype3 <= 2'b0;
-        WReg_pype3 <= 5'b0;
-        ALU_co_pype3 <= 32'b0;
-        PCp4_pype3 <= PCp4_pype3;
-        branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;
-        branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
-        Instraction_pype3 <= Instraction_pype3;
-        //MemRW_pype3 <= 2'b0;
-    end
-
-    if (!rst) begin
         RegWrite_pype3 <= 1'b0;
         MemtoReg_pype3 <= 2'b0;
         WReg_pype3 <= 5'b0;
@@ -98,6 +73,36 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
     end
+    
+    else if (keep) begin
+        RegWrite_pype3 <= RegWrite_pype3;
+        MemtoReg_pype3 <= MemtoReg_pype3;
+        WReg_pype3 <= WReg_pype3;
+        ALU_co_pype3 <= ALU_co_pype3;
+        PCp4_pype3 <= PCp4_pype3;
+        branch_PC <= branch_PC;
+        branch_PC_contral <= 1'b0;
+        //branch_PC_contral <= branch_PC_contral;
+        branch_nop <= branch_nop;
+        Instraction_pype3 <= Instraction_pype3;
+        //MemRW_pype3 <= MemRW_pype3;
+    end
+
+
+
+    else if (!rst) begin
+        RegWrite_pype3 <= 1'b0;
+        MemtoReg_pype3 <= 2'b0;
+        WReg_pype3 <= 5'b0;
+        ALU_co_pype3 <= 32'b0;
+        PCp4_pype3 <= 32'b0;
+        branch_PC <= 32'b0;
+        branch_PC_contral <= 1'b0;
+        branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
+        Instraction_pype3 <= 32'b0;
+        //MemRW_pype3 <= 2'b0;
+    end
+
     //メモリアクセス 書くときに確定で1クロック
 //    dreq <= |MemRW_pype2;
 //    dwrite <= MemRW_pype2[0];
@@ -105,7 +110,7 @@ always @(posedge clk, negedge rst) begin
 //    daddr <= ALU_co_pype;
     //branch
     //Membranch_pype2が`MEMB_BEQかつALU_co_pypeが0, MemBranch_pyep2が`MEMB_BNEかつALU_co_pypeが0でないのどちらかなら1、それ以外は0
-
+    else begin //ここにelseないと通常の処理にならないよ！
     if ((MemBranch_pype2 == `MEMB_BEQ && ALU_co_pype == 0) ||
     (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
@@ -132,6 +137,7 @@ always @(posedge clk, negedge rst) begin
     MemtoReg_pype3 <= MemtoReg_pype2;
 
 
+end
 end
 
 endmodule
