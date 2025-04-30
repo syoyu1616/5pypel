@@ -50,16 +50,24 @@ always @(posedge clk) begin
     end
 
     else if (nop) begin
-        if (branch_PC_early_contral)
+        if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;
-        else if (branch_PC_contral)
+            next_PC_pype0 = branch_PC_early;
+            next_PCp4_pype0 = branch_PC_early + 32'd4;
+        end
+        else if (branch_PC_contral) begin
             next_iaddr = branch_PC;
-        else
-            next_iaddr = iaddr;
+            next_PC_pype0 = branch_PC;
+            next_PCp4_pype0 = branch_PC + 32'd4;
+        end
 
-        next_PC_pype0 = PC_pype0;
-        next_PCp4_pype0 = PCp4_pype0;
+        else begin
+            next_iaddr = iaddr;
+            next_PC_pype0 = PC_pype0;
+            next_PCp4_pype0 = PCp4_pype0;
+        end
     end
+
     else begin
         if (branch_PC_early_contral)
             next_iaddr = branch_PC_early;

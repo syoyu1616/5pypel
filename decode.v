@@ -10,6 +10,9 @@ module decode (
     input [31:0] Instraction_pype,
     //stall系はちょっと後回し read_reg_pype や EXからの信号などがあるから
 
+    input [1:0] ID_EX_write,
+    input [31:0] write_reg_data,
+
     input [31:0] read_data1,
     input [31:0] read_data2,//registerからのね
 
@@ -60,6 +63,9 @@ module decode (
     
 );
 
+//  それぞれID_EX_writeのbitが立っていたら
+
+
 	wire [6:0] opcode;
 		assign opcode = Instraction_pype[6:0];
 	wire [31:0] imm_I;
@@ -90,7 +96,7 @@ module decode (
     assign rs2 = Instraction_pype[24:20];
     */
 
-    assign funct3 = Instraction_pype[14:12];
+    assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
     assign funct7 = Instraction_pype[31:25];
 
     assign read_reg1 = Instraction_pype[19:15];
@@ -100,35 +106,9 @@ module decode (
     assign read_data2_pype = read_data2;*/
 
     always @(posedge clk, negedge rst) begin
-    
-    // Stop(pause) CPU
-    if (keep) begin
-        //制御線維持
-        RegWrite_pype1 <= RegWrite_pype1;
-        MemtoReg_pype1 <= MemtoReg_pype1;
-        MemRW_pype1 <= MemRW_pype1;
-        MemBranch_pype <= MemBranch_pype;
-        ALU_Src_pype <= ALU_Src_pype;
-        ALU_control_pype <= ALU_control_pype;
 
-        read_data1_pype <= read_data1_pype;
-        read_data2_pype <= read_data2_pype;
-
-        //data維持やex以降で用いるやつ維持
-        Imm_pype <= Imm_pype;
-        for_ALU_c <= for_ALU_c;
-        WReg_pype <= WReg_pype;
-
-        //PCやALU_controlの維持
-
-        PC_pype1 <= PC_pype1;
-        PCp4_pype1 <= PCp4_pype1;
-        Instraction_pype1 <= Instraction_pype1;
-    end
-
-
-    // Pipeline Bubble(addi x0, x0, 0)
-    else if (nop) begin
+            // Pipeline Bubble(addi x0, x0, 0)
+    if (nop) begin
         //制御線維持
         RegWrite_pype1 <= 0;
         MemtoReg_pype1 <= 2'b0;
@@ -137,13 +117,13 @@ module decode (
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
 
-        read_data1_pype <= 32'b0;
-        read_data2_pype <= 32'b0;
-
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
         for_ALU_c <= 4'b0;
         WReg_pype <= 5'b0;
+        read_data1_pype <= 32'b0;
+        read_data2_pype <= 32'b0;
+
 
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
@@ -151,6 +131,31 @@ module decode (
         Instraction_pype1 <= 32'b0; //これ維持しても意味なくないか？;
 
     end
+    
+    // Stop(pause) CPU
+    else if (keep) begin
+        //制御線維持
+        RegWrite_pype1 <= RegWrite_pype1;
+        MemtoReg_pype1 <= MemtoReg_pype1;
+        MemRW_pype1 <= MemRW_pype1;
+        MemBranch_pype <= MemBranch_pype;
+        ALU_Src_pype <= ALU_Src_pype;
+        ALU_control_pype <= ALU_control_pype;
+
+        //data維持やex以降で用いるやつ維持
+        Imm_pype <= Imm_pype;
+        for_ALU_c <= for_ALU_c;
+        WReg_pype <= WReg_pype;
+        read_data1_pype <= (ID_EX_write[1] == 1) ? write_reg_data : read_data1_pype;
+        read_data2_pype <= (ID_EX_write[0] == 1) ? write_reg_data : read_data2_pype;
+
+
+        //PCやALU_controlの維持
+        PC_pype1 <= PC_pype1;
+        PCp4_pype1 <= PCp4_pype1;
+        Instraction_pype1 <= Instraction_pype1;
+    end
+
 
     else if (!rst) begin
         //制御線維持
@@ -161,13 +166,13 @@ module decode (
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
 
-        read_data1_pype <= 32'b0;
-        read_data2_pype <= 32'b0;
-
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
         for_ALU_c <= 4'b0;
         WReg_pype <= 5'b0;
+        read_data1_pype <= 32'b0;
+        read_data2_pype <= 32'b0;
+
         
         //PCの維持
         PC_pype1 <= 32'b0;
@@ -230,7 +235,7 @@ module decode (
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
-                MemBranch_pype <= `MEMB_JAL;
+                MemBranch_pype <= `MEMB_JALR;
                 ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_j;
 
@@ -362,12 +367,8 @@ module decode (
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
 
-        read_data1_pype <= read_data1;
-        read_data2_pype <= read_data2;
-        
-
-        
-
+        read_data1_pype <= (ID_EX_write[1] == 1) ? write_reg_data : read_data1;
+        read_data2_pype <= (ID_EX_write[0] == 1) ? write_reg_data : read_data2;
     end
 end
 

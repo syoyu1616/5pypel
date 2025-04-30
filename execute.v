@@ -44,7 +44,7 @@ module execute(
     output branch_PC*/
     //stall関連はまだ
 );
-reg Regwrite_delay;
+
 
 wire [3:0] ALU_control;
 
@@ -70,7 +70,9 @@ assign ALU_control =
     ) :
     (ALU_control_pype == `ALU_co_pype_j) ? (
         (for_ALU_c == `INST_JAL)  ? `ALU_OP_ADD  :
-        (for_ALU_c == `INST_JALR) ? `ALU_OP_JALR :
+        (for_ALU_c == `INST_JALR) ? `ALU_OP_ADD  :
+
+        //(for_ALU_c == `INST_JALR) ? `ALU_OP_JALR :
                                     4'b0000
     ) :
 
@@ -80,34 +82,6 @@ assign ALU_control =
     4'b0000;
 
 
-//ALUに入れるやつの条件付け
-/*reg [31:0] ALU_data1, ALU_data2;
-
-always @(*) begin
-    case (ALU_Src_pype[2:1])
-        `ALU_Src_d1_0:   ALU_data1 = 32'b0;
-        `ALU_Src_d1_p:   ALU_data1 = read_data1_pype;
-        `ALU_Src_d1_PC:  ALU_data1 = PC_pype1;
-        default:         ALU_data1 = 32'bx;
-    endcase
-
-    case (ALU_Src_pype[0])
-        `ALU_Src_d2_Im:  ALU_data2 = Imm_pype;
-        `ALU_Src_d2_p:   ALU_data2 = read_data2_pype;
-        default:         ALU_data2 = 32'bx;
-    endcase
-end*/
-/*
-wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == `ALU_Src_d1_0)  ? 32'b0 :
-                        (ALU_Src_pype[2:1] == `ALU_Src_d1_p)  ? read_data1_pype :
-                        (ALU_Src_pype[2:1] == `ALU_Src_d1_PC) ? PC_pype1 :
-                        32'bx;
-
-wire [31:0] ALU_data2 = (ALU_Src_pype[0] == `ALU_Src_d2_Im) ? Imm_pype :
-                        (ALU_Src_pype[0] == `ALU_Src_d2_p)  ? read_data2_pype :
-                        32'bx;
-
-*/
 wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
@@ -130,7 +104,20 @@ assign branch_PC = branch_PC_wire*/
 
 
 always @(posedge clk, negedge rst) begin
-    if (keep) begin
+
+    if (nop) begin
+        ALU_co_pype <= 32'b0;
+        PCBranch_pype2 <= 32'b0;
+        read_data2_pype2 <= 32'b0;
+        PCp4_pype2 <= 32'b0;
+        WReg_pype2 <= 5'b0;
+        RegWrite_pype2 <= 1'b0;
+        MemtoReg_pype2 <= 2'b0;
+        MemRW_pype2 <= 2'b0;
+        MemBranch_pype2 <= 1'b0;
+        Instraction_pype2 <= 32'b0;
+
+    end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
         PCBranch_pype2 <= PCBranch_pype2;
         read_data2_pype2 <= read_data2_pype2;
@@ -142,22 +129,7 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
 
-    end
-
-    else if (nop) begin
-        ALU_co_pype <= 32'b0;
-        PCBranch_pype2 <= 32'b0;
-        read_data2_pype2 <= 32'b0;
-        PCp4_pype2 <= 32'b0;
-        WReg_pype2 <= 5'b0;
-        RegWrite_pype2 <= 1'b0;
-        MemtoReg_pype2 <= 2'b0;
-        MemRW_pype2 <= 2'b0;
-        MemBranch_pype2 <= 1'b0;
-        Instraction_pype2 <= 32'b0;
-    end
-
-    else if (!rst) begin
+    end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
         PCBranch_pype2 <= 32'b0;
         read_data2_pype2 <= 32'b0;
@@ -173,18 +145,20 @@ always @(posedge clk, negedge rst) begin
 
     else begin
     case(ALU_control)
-            `ALU_OP_ADD: ALU_co_pype = ALU_data1 + ALU_data2;
-            `ALU_OP_SUB: ALU_co_pype = ALU_data1 - ALU_data2;
+            `ALU_OP_ADD: ALU_co_pype <= ALU_data1 + ALU_data2;
+            //`ALU_OP_SUB: ALU_co_pype <= ALU_data1 - ALU_data2;
+            `ALU_OP_SUB: ALU_co_pype <= $signed(ALU_data1) - $signed(ALU_data2);
 
-            `ALU_OP_AND: ALU_co_pype = ALU_data1 & ALU_data2;
-            `ALU_OP_OR:  ALU_co_pype = ALU_data1 | ALU_data2;
-            `ALU_OP_XOR: ALU_co_pype = ALU_data1 ^ ALU_data2;
-            `ALU_OP_SLL: ALU_co_pype = ALU_data1 << ALU_data2[4:0];
+            `ALU_OP_AND: ALU_co_pype <= ALU_data1 & ALU_data2;
+            `ALU_OP_OR:  ALU_co_pype <= ALU_data1 | ALU_data2;
+            `ALU_OP_XOR: ALU_co_pype <= ALU_data1 ^ ALU_data2;
+            `ALU_OP_SLL: ALU_co_pype <= ALU_data1 << ALU_data2[4:0];
 
-            `ALU_OP_SRL: ALU_co_pype = ALU_data1 >> ALU_data2[4:0];
-            `ALU_OP_SRA: ALU_co_pype = ALU_data1 >>> ALU_data2[4:0];
-            `ALU_OP_SLT: ALU_co_pype = (ALU_data1 < ALU_data2) ? 32'b1 : 32'b0; //これらとsubを用いてbranchとする
-            `ALU_OP_SLTU: ALU_co_pype = $unsigned(ALU_data1) < $unsigned(ALU_data2) ? 32'b1 : 32'b0;
+            `ALU_OP_SRL: ALU_co_pype <= ALU_data1 >> ALU_data2[4:0];
+            `ALU_OP_SRA: ALU_co_pype <= ALU_data1 >>> ALU_data2[4:0];
+            `ALU_OP_SLT: ALU_co_pype <= (ALU_data1 < ALU_data2) ? 32'b1 : 32'b0; //これらとsubを用いてbranchとする
+            `ALU_OP_SLTU: ALU_co_pype <= $unsigned(ALU_data1) < $unsigned(ALU_data2) ? 32'b1 : 32'b0;
+            default: ALU_co_pype <= 32'b0;
         endcase
 
 
@@ -220,9 +194,6 @@ always @(posedge clk, negedge rst) begin
     MemBranch_pype2 <= MemBranch_pype;
     Instraction_pype2 <= Instraction_pype1;
     RegWrite_pype2 <= RegWrite_pype1;
-
-     // 1クロック遅延用のレジスタに先に入れる
-    Regwrite_delay <= RegWrite_pype1;
 
     // WReg_pype2 は delayレジスタ経由で更新
     //RegWrite_pype2 <= Regwrite_delay;

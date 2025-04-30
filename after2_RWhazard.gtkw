@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Mon Apr 28 07:32:31 2025
+[*] Wed Apr 30 06:57:12 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Mon Apr 28 07:24:41 2025"
-[dumpfile_size] 31850496
+[dumpfile_mtime] "Wed Apr 30 06:36:29 2025"
+[dumpfile_size] 237007994
 [savefile] "/home/seigo/modules/programs/5pypel/after2_RWhazard.gtkw"
-[timestart] 2257
+[timestart] 13387
 [size] 1000 600
 [pos] -1 -1
-*-4.600000 2280 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.600000 13400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
@@ -22,26 +22,41 @@ top_test.i_top.i_core.i_fetch.iaddr[31:0]
 @4022
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_fetch.idata[31:0]
-@4023
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
-@4022
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_execute.Instraction_pype1[31:0]
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_execute.Instraction_pype2[31:0]
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
+@22
+top_test.i_top.i_core.i_execute.read_data1_pype[31:0]
+top_test.i_top.i_core.i_execute.ALU_data1[31:0]
+top_test.i_top.i_core.i_execute.read_data2_pype[31:0]
+top_test.i_top.i_core.i_execute.ALU_data2[31:0]
 @28
-top_test.i_top.i_core.noper_unit.nop_IF
+top_test.i_top.i_core.i_execute.ALU_control[3:0]
+@29
+top_test.i_top.i_core.i_execute.for_ALU_c[3:0]
+@28
+top_test.i_top.i_core.i_decode.funct3[2:0]
+@22
+top_test.i_top.i_core.i_execute.ALU_co_pype[31:0]
+top_test.i_top.i_core.i_mem_access.ALU_co_pype3[31:0]
+@28
 top_test.i_top.i_core.noper_unit.nop_ID
 top_test.i_top.i_core.noper_unit.nop_EX
-top_test.i_top.i_core.noper_unit.hazard_pype1
-top_test.i_top.i_core.noper_unit.hazard_pype2
-top_test.i_top.i_core.noper_unit.hazard_pype3
+top_test.i_top.i_core.i_mem_access.MemBranch_pype2[2:0]
+top_test.i_top.i_core.noper_unit.branch_PC_contral
 @22
-top_test.i_top.i_core.noper_unit.fornop_register1_pype[4:0]
-top_test.i_top.i_core.noper_unit.fornop_register2_pype[4:0]
-top_test.i_top.i_core.noper_unit.WReg_pype[4:0]
-top_test.i_top.i_core.noper_unit.WReg_pype2[4:0]
-top_test.i_top.i_core.noper_unit.WReg_pype3[4:0]
+top_test.i_top.i_core.i_mem_access.PCBranch_pype2[31:0]
+top_test.i_top.i_core.i_fetch.branch_PC[31:0]
+@28
+top_test.i_top.i_core.noper_unit.mem_ac_stall
+top_test.i_top.i_core.i_execute.ALU_Src_pype[2:0]
+@22
+top_test.i_top.i_core.i_fetch.PC_pype0[31:0]
+top_test.i_top.i_core.i_execute.PC_pype1[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

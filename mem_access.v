@@ -18,6 +18,10 @@ module mem_access(
 
     input [31:0] Instraction_pype2,
 
+    //stall関連
+    input [1:0] ID_EX_write_pype2,
+    output reg [1:0] ID_EX_write_pype3,
+
     //memへの入出力
     output  [31:0] daddr,
     output  dreq,
@@ -41,7 +45,7 @@ module mem_access(
 
     output reg [31:0] branch_PC,
     output reg branch_PC_contral,
-    output reg branch_nop,
+
 
     output reg [31:0] Instraction_pype3
 
@@ -69,9 +73,9 @@ always @(posedge clk, negedge rst) begin
         PCp4_pype3 <= 32'b0;
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
-        branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
         Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
+        ID_EX_write_pype3 <= 0;
     end
     
     else if (keep) begin
@@ -81,11 +85,11 @@ always @(posedge clk, negedge rst) begin
         ALU_co_pype3 <= ALU_co_pype3;
         PCp4_pype3 <= PCp4_pype3;
         branch_PC <= branch_PC;
-        branch_PC_contral <= 1'b0;
-        //branch_PC_contral <= branch_PC_contral;
-        branch_nop <= branch_nop;
+        branch_PC_contral <= branch_PC_contral;
         Instraction_pype3 <= Instraction_pype3;
         //MemRW_pype3 <= MemRW_pype3;
+        ID_EX_write_pype3 <= ID_EX_write_pype3;
+
     end
 
 
@@ -98,9 +102,10 @@ always @(posedge clk, negedge rst) begin
         PCp4_pype3 <= 32'b0;
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
-        branch_nop <= 1'b0; //nopなのに正論理で良いかなぁ？
         Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
+        ID_EX_write_pype3 <= 0;
+
     end
 
     //メモリアクセス 書くときに確定で1クロック
@@ -111,18 +116,22 @@ always @(posedge clk, negedge rst) begin
     //branch
     //Membranch_pype2が`MEMB_BEQかつALU_co_pypeが0, MemBranch_pyep2が`MEMB_BNEかつALU_co_pypeが0でないのどちらかなら1、それ以外は0
     else begin //ここにelseないと通常の処理にならないよ！
-    if ((MemBranch_pype2 == `MEMB_BEQ && ALU_co_pype == 0) ||
+    if ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
     (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
     (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype == 32'b1 ) ||
     (MemBranch_pype2 == `MEMB_JAL)) begin
         branch_PC <= PCBranch_pype2;
         branch_PC_contral <= 1;
-        branch_nop <= 1;  // これで次の命令をnopに
+        // これで次の命令をnopに
+    end else if (MemBranch_pype2 == `MEMB_JALR) begin
+        branch_PC <= ALU_co_pype;
+        branch_PC_contral <= 1;
     end else begin
         branch_PC_contral <= 0;
-        branch_nop <= 0;
     end
+
+    
 
 
     //横流し
@@ -130,11 +139,10 @@ always @(posedge clk, negedge rst) begin
     WReg_pype3 <= WReg_pype2;
     RegWrite_pype3 <= RegWrite_pype2;
     ALU_co_pype3 <= ALU_co_pype;
-    //MemRW_pype3 <= MemRW_pype2;
-    //if (|MemRW_pype3) MemRW_pype3 <= MemRW_pype3;
 
     Instraction_pype3 <= Instraction_pype2;
     MemtoReg_pype3 <= MemtoReg_pype2;
+    ID_EX_write_pype3 <= ID_EX_write_pype2;
 
 
 end

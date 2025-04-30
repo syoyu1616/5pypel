@@ -42,7 +42,10 @@
 `define MEMB_BLT  3'b011 //unsignedも同じ
 `define MEMB_BGE  3'b100 //unsignedも同じ
 
-`define MEMB_JAL  3'b111 //飛ぶのは確定なのでjalrも同じ 
+`define MEMB_JAL  3'b101 
+`define MEMB_JALR  3'b111 
+
+//`define MEMB_JAL  3'b111 //飛ぶのは確定なのでjalrも同じ 
 
 `define ALU_co_pype_normal  3'b000
 `define ALU_co_pype_coo  3'b001
