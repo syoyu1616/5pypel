@@ -16,6 +16,9 @@ module execute(
 
     input [31:0] Instraction_pype1,
 
+    input [1:0] ID_EX_write_addi_pype1,
+    output reg [1:0] ID_EX_write_addi_pype2,
+
     //制御線
     input RegWrite_pype1,
     input [1:0] MemtoReg_pype1,
@@ -37,6 +40,8 @@ module execute(
     output reg [2:0] MemBranch_pype2,
 
     output reg [31:0] Instraction_pype2
+
+    
 
 
     //fecheへのバック regかはまだわからん 4/18
@@ -71,15 +76,11 @@ assign ALU_control =
     (ALU_control_pype == `ALU_co_pype_j) ? (
         (for_ALU_c == `INST_JAL)  ? `ALU_OP_ADD  :
         (for_ALU_c == `INST_JALR) ? `ALU_OP_ADD  :
-
-        //(for_ALU_c == `INST_JALR) ? `ALU_OP_JALR :
                                     4'b0000
     ) :
+    (ALU_control_pype == `ALU_co_pype_load) ? `ALU_OP_ADD  : 4'b0000;
+    
 
-/*    (ALU_control_pype == `ALU_co_pype_store) ? (
-                                    4'b0000
-    ) :*/
-    4'b0000;
 
 
 wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
@@ -116,6 +117,7 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
+        ID_EX_write_addi_pype2 <= 32'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -128,6 +130,7 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= MemRW_pype2;
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
+        ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype2;
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -140,6 +143,7 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
+        ID_EX_write_addi_pype2 <= 32'b0;
     end
 
 
@@ -177,9 +181,9 @@ always @(posedge clk, negedge rst) begin
     case(ALU_control_pype)
         `ALU_co_pype_store: begin
             case(for_ALU_c)
-            `INST_Sb: read_data2_pype2 <= {31'b0, read_data2_pype[0]};
-            `INST_Sh: read_data2_pype2 <= {30'b0, read_data2_pype[1:0]};
-            `INST_Sw: read_data2_pype2 <= {28'b0, read_data2_pype[3:0]};
+            `INST_Sb: read_data2_pype2 <= {31'b0, read_data2_pype[7:0]}; //1バイト
+            `INST_Sh: read_data2_pype2 <= {30'b0, read_data2_pype[15:0]}; //2バイト
+             //4バイト = 何もしない
             endcase
         end
     
@@ -195,11 +199,7 @@ always @(posedge clk, negedge rst) begin
     Instraction_pype2 <= Instraction_pype1;
     RegWrite_pype2 <= RegWrite_pype1;
 
-    // WReg_pype2 は delayレジスタ経由で更新
-    //RegWrite_pype2 <= Regwrite_delay;
-
-    //RegWrite_pype2 <= RegWrite_pype1;
-
+    ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype1;
 end
 end
 endmodule

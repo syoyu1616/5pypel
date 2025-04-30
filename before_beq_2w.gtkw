@@ -1,0 +1,51 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Wed Apr 30 09:03:32 2025
+[*]
+[dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
+[dumpfile_mtime] "Wed Apr 30 09:00:21 2025"
+[dumpfile_size] 4288512
+[savefile] "/home/seigo/modules/programs/5pypel/before_beq_2w.gtkw"
+[timestart] 19280
+[size] 1000 600
+[pos] -1 -1
+*-5.000000 19316 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top_test.
+[treeopen] top_test.i_top.
+[treeopen] top_test.i_top.i_core.
+[sst_width] 352
+[signals_width] 246
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@23
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@4022
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
+@22
+top_test.i_top.i_core.i_decode.read_data1_pype[31:0]
+top_test.i_top.i_core.i_execute.ALU_data1[31:0]
+top_test.i_top.i_core.i_execute.ALU_data2[31:0]
+top_test.i_top.i_core.i_execute.ALU_co_pype[31:0]
+@28
+top_test.i_top.i_core.noper_unit.mem_ac_stall
+top_test.i_top.i_core.noper_unit.branch_PC_contral
+@22
+top_test.i_top.i_core.i_mem_access.branch_PC[31:0]
+top_test.i_top.i_core.i_mem_access.PCBranch_pype2[31:0]
+top_test.i_top.i_core.i_execute.ALU_co_pype[31:0]
+top_test.i_top.i_core.i_writeback.write_reg_data[31:0]
+@28
+top_test.i_top.i_core.i_writeback.ID_EX_write[1:0]
+top_test.i_top.i_core.ID_EX_write_addi[1:0]
+@22
+top_test.i_top.i_core.noper_unit.fornop_register1_pype[4:0]
+top_test.i_top.i_core.noper_unit.fornop_register2_pype[4:0]
+top_test.i_top.i_core.noper_unit.WReg_pype[4:0]
+top_test.i_top.i_core.noper_unit.WReg_pype2[4:0]
+top_test.i_top.i_core.i_regfile.rd[4:0]
+top_test.i_top.i_core.i_regfile.in[31:0]
+top_test.i_top.i_core.i_execute.read_data1_pype[31:0]
+top_test.i_top.i_core.i_execute.read_data2_pype[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

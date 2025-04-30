@@ -40,6 +40,7 @@ module core(
   
     wire [4:0] WReg_pype;
     wire [1:0] ID_EX_write_pype2, ID_EX_write_pype3, ID_EX_write;
+    wire [1:0] ID_EX_write_addi_pype1, ID_EX_write_addi_pype2, ID_EX_write_addi_pype3, ID_EX_write_addi;
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
 
@@ -64,6 +65,7 @@ noper noper_unit (
     .write_reg_address  (write_reg_address),
 
     .ID_EX_write_pype2  (ID_EX_write_pype2),
+    .ID_EX_write_addi_pype1  (ID_EX_write_addi_pype1),
 
 
     // 分岐成立
@@ -133,7 +135,9 @@ noper noper_unit (
     .read_reg1(read_reg1), 
     .read_reg2(read_reg2),
     .ID_EX_write(ID_EX_write), 
+    .ID_EX_write_addi (ID_EX_write_addi),
     .write_reg_data(write_reg_data),
+    
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
     .Imm_pype(Imm_pype),
@@ -163,6 +167,9 @@ noper noper_unit (
     .for_ALU_c(for_ALU_c),
     .WReg_pype(WReg_pype), 
     .Instraction_pype1(Instraction_pype1), 
+    .ID_EX_write_addi_pype1(ID_EX_write_addi_pype1),
+
+    .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
     .RegWrite_pype1(RegWrite_pype1), 
     .MemtoReg_pype1(MemtoReg_pype1), 
     .MemRW_pype1(MemRW_pype1),
@@ -200,7 +207,10 @@ noper noper_unit (
     .WReg_pype2 (WReg_pype2), 
     .Instraction_pype2(Instraction_pype2), 
     .ID_EX_write_pype2(ID_EX_write_pype2),
+    .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
+
     .ID_EX_write_pype3(ID_EX_write_pype3),
+    .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
     .daddr (daddr), 
     .dreq(dreq), 
     .dwrite(dwrite), 
@@ -231,10 +241,14 @@ noper noper_unit (
     .RegWrite_pype3(RegWrite_pype3),
     .MemtoReg_pype3(MemtoReg_pype3),
     .ID_EX_write_pype3(ID_EX_write_pype3),
+    .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
+
+    
     .write_reg_data    (write_reg_data),
     .Regwrite          (Regwrite),
     .write_reg_address (write_reg_address),
-    .ID_EX_write(ID_EX_write));
+    .ID_EX_write(ID_EX_write),
+    .ID_EX_write_addi (ID_EX_write_addi));
 
     regfile i_regfile(
     .clk(clk), .rst(rst), .write_n(Regwrite),

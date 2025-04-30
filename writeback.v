@@ -15,11 +15,14 @@ module writeback(
     input [1:0]MemtoReg_pype3,
 
     input [1:0] ID_EX_write_pype3,
+    input [1:0] ID_EX_write_addi_pype3,
+
 
     output  [31:0] write_reg_data,
     output  Regwrite,
     output  [4:0] write_reg_address,
-    output  [1:0] ID_EX_write
+    output  [1:0] ID_EX_write,
+    output  [1:0] ID_EX_write_addi
 );
 
 assign write_reg_data = 
@@ -31,6 +34,7 @@ assign Regwrite = ~RegWrite_pype3;
 assign write_reg_address = WReg_pype3;
 
 assign ID_EX_write = ID_EX_write_pype3;
+assign ID_EX_write_addi = ID_EX_write_addi_pype3;
 //memtoregの伝達が途中で止まってるせいでwriteが上手くいってない
 
 

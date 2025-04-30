@@ -52,6 +52,7 @@
 `define ALU_co_pype_nou  3'b010
 `define ALU_co_pype_j  3'b011
 `define ALU_co_pype_store  3'b100
+`define ALU_co_pype_load 3'b101
 
 
 /*

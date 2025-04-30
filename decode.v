@@ -11,6 +11,7 @@ module decode (
     //stall系はちょっと後回し read_reg_pype や EXからの信号などがあるから
 
     input [1:0] ID_EX_write,
+    input [1:0] ID_EX_write_addi,
     input [31:0] write_reg_data,
 
     input [31:0] read_data1,
@@ -146,8 +147,8 @@ module decode (
         Imm_pype <= Imm_pype;
         for_ALU_c <= for_ALU_c;
         WReg_pype <= WReg_pype;
-        read_data1_pype <= (ID_EX_write[1] == 1) ? write_reg_data : read_data1_pype;
-        read_data2_pype <= (ID_EX_write[0] == 1) ? write_reg_data : read_data2_pype;
+        read_data1_pype <= ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1)) ? write_reg_data : read_data1_pype;
+        read_data2_pype <= ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1)) ? write_reg_data : read_data2_pype;
 
 
         //PCやALU_controlの維持
@@ -245,13 +246,14 @@ module decode (
             end
 
             // lb/lh/lw/lbu/lhu
+            //これノーマルにしたせいでfunctによって足し算以外をしちゃってるね
             `OP_LOAD: begin
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_memd;
                 MemRW_pype1 <= 2'b10;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
-                ALU_control_pype <= `ALU_co_pype_normal;
+                ALU_control_pype <= `ALU_co_pype_load;
 
                 Imm_pype <= $signed(imm_I);
                 for_ALU_c <= {1'b0, funct3};

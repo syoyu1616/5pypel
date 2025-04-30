@@ -22,6 +22,11 @@ module mem_access(
     input [1:0] ID_EX_write_pype2,
     output reg [1:0] ID_EX_write_pype3,
 
+    input [1:0] ID_EX_write_addi_pype2,
+    output reg [1:0] ID_EX_write_addi_pype3,
+
+    
+
     //memへの入出力
     output  [31:0] daddr,
     output  dreq,
@@ -76,6 +81,7 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
         ID_EX_write_pype3 <= 0;
+        ID_EX_write_addi_pype3 <= 0;
     end
     
     else if (keep) begin
@@ -89,6 +95,7 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype3 <= Instraction_pype3;
         //MemRW_pype3 <= MemRW_pype3;
         ID_EX_write_pype3 <= ID_EX_write_pype3;
+        ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
 
     end
 
@@ -143,6 +150,7 @@ always @(posedge clk, negedge rst) begin
     Instraction_pype3 <= Instraction_pype2;
     MemtoReg_pype3 <= MemtoReg_pype2;
     ID_EX_write_pype3 <= ID_EX_write_pype2;
+    ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
 
 
 end

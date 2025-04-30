@@ -42,6 +42,7 @@ module noper(
     input [1:0] MemRW_pype1,
     input [1:0] MemRW_pype2,
 
+    output wire [1:0] ID_EX_write_addi_pype1,
     output wire [1:0] ID_EX_write_pype2,
    
     output wire stall_IF,
@@ -84,7 +85,7 @@ module noper(
     // 2ビットのビットマスクを使って、どのレジスタにハザードがあるかを示す
     //どっちにしろ3で立つのでいらない ×　二個連続に対応するため二つのパイプを用意する
     assign ID_EX_write_addi_pype1 = (RegWrite_pype1 && (WReg_pype != 0)) ? 
-    { (WReg_pype == fornop_register2_pype), (WReg_pype == fornop_register1_pype) } : 2'b00;
+    { (WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype) } : 2'b00;
 
     assign ID_EX_write_pype2 = (RegWrite_pype2 && (WReg_pype2 != 0)) ? 
     { (WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype) } : 2'b00;
@@ -103,7 +104,7 @@ module noper(
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
     assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1 || hazard_pype2;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
-    assign nop_ID  = branch_PC_contral || hazard_pype1;  // 分岐成立でIDの命令潰す
+    assign nop_ID  = branch_PC_contral;// || hazard_pype1;  // 分岐成立でIDの命令潰す
     assign nop_EX  = branch_PC_contral || hazard_pype2; // 分岐 or データハザードでEXをバブル
     assign nop_Mem = branch_PC_contral;
     assign nop_WB  = 1'b0; //branch--で様子見
