@@ -39,7 +39,9 @@ module execute(
     output reg [1:0] MemRW_pype2,
     output reg [2:0] MemBranch_pype2,
 
-    output reg [31:0] Instraction_pype2
+    output reg [31:0] Instraction_pype2,
+
+    output reg [1:0] dsize_pype2
 
     
 
@@ -78,7 +80,9 @@ assign ALU_control =
         (for_ALU_c == `INST_JALR) ? `ALU_OP_ADD  :
                                     4'b0000
     ) :
-    (ALU_control_pype == `ALU_co_pype_load) ? `ALU_OP_ADD  : 4'b0000;
+    (ALU_control_pype == `ALU_co_pype_load)  ? `ALU_OP_ADD :
+    (ALU_control_pype == `ALU_co_pype_store) ? `ALU_OP_ADD :
+                                               4'b0000;
     
 
 
@@ -118,6 +122,7 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
         ID_EX_write_addi_pype2 <= 32'b0;
+        dsize_pype2 <= 2'b00;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -131,6 +136,7 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
         ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype2;
+        dsize_pype2 <= dsize_pype2;
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -181,15 +187,29 @@ always @(posedge clk, negedge rst) begin
     case(ALU_control_pype)
         `ALU_co_pype_store: begin
             case(for_ALU_c)
-            `INST_Sb: read_data2_pype2 <= {31'b0, read_data2_pype[7:0]}; //1バイト
-            `INST_Sh: read_data2_pype2 <= {30'b0, read_data2_pype[15:0]}; //2バイト
-             //4バイト = 何もしない
-            endcase
+            `INST_Sb: read_data2_pype2 <= {24'b0, read_data2_pype[7:0]}; //1バイト
+            `INST_Sh: read_data2_pype2 <= {18'b0, read_data2_pype[15:0]}; //2バイト
+            default: read_data2_pype2 <= read_data2_pype; //これないとswが働かない
+        endcase
         end
     
-        default: read_data2_pype2 <= read_data1_pype;
+        default: read_data2_pype2 <= read_data2_pype;
 
     endcase
+
+case (ALU_control_pype)
+    `ALU_co_pype_load: begin
+        case (for_ALU_c)
+            4'b0000,
+            4'b0100: dsize_pype2 <= 2'b00; // 1バイト
+            4'b0001,
+            4'b0101: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
+            default: dsize_pype2 <= 2'b10; // 4バイト（defaultがないと働かない）
+        endcase
+    end
+    default: dsize_pype2 <= 2'b10; // load命令でないときは基本的にワードアクセス
+endcase
+
 
     PCp4_pype2 <= PCp4_pype1;
     WReg_pype2 <= WReg_pype;

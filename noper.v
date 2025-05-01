@@ -97,16 +97,16 @@ module noper(
 
 
     assign stall_IF  = 0;
-    assign stall_ID  = mem_ac_stall || hazard_pype2;
+    assign stall_ID  = mem_ac_stall  ||hazard_pype2;
     assign stall_EX  = mem_ac_stall;
     assign stall_Mem = mem_ac_stall;
-    assign stall_WB  = 0;
+    assign stall_WB  = mem_ac_stall;
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
     assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1 || hazard_pype2;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
-    assign nop_ID  = branch_PC_contral;// || hazard_pype1;  // 分岐成立でIDの命令潰す
-    assign nop_EX  = branch_PC_contral || hazard_pype2; // 分岐 or データハザードでEXをバブル
-    assign nop_Mem = branch_PC_contral;
+    assign nop_ID  = branch_PC_contral || hazard_pype1;  // 分岐成立でIDの命令潰す
+    assign nop_EX  = branch_PC_contral;// || hazard_pype2; // 分岐 or データハザードでEXをバブル
+    assign nop_Mem = 1'b0;//branch_PC_contral;
     assign nop_WB  = 1'b0; //branch--で様子見
 
 

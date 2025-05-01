@@ -23,11 +23,11 @@ module cache#(
 	parameter addr_width = 32,		//アドレスのビット幅
 	parameter cache_size = 16384,	//キャッシュの容量（バイト単位）
 	parameter block_size = 32,		//ブロックサイズ（バイト単位）
-	parameter assoc = 8,			//キャッシュの連想度
+	parameter assoc = 4,			//キャッシュの連想度
 	parameter stdout_addr = 32'hf000_0000,	//標準出力のアドレス
 	parameter exit_addr = 32'hff00_0000,	//終了アドレス
 //	parameter log_filename = "cachelog.dat",
-	//以下のパラメータは変更を想定していない
+	//以下のパラメータは変更を想定していない//
 	parameter byte_width = 8,												//1バイトのビット幅（8のみ対応）
 	parameter way_size = cache_size/assoc,									//1ウェイの容量（キャッシュ容量/連想度）
 	parameter index_width = $clog2(way_size),								//インデックスのビット幅
@@ -190,12 +190,10 @@ module cache#(
 	//  + (書き込み要求)
 	//    + (通常アドレス)
 	//      + (キャッシュヒット) -> キャッシュ書き込み
-	
 	//      + (キャッシュミス)
 	//        + 追い出しブロックの決定フェーズ (state = 1001)
 	//          + (dirtyビットが立っている) -> ブロックをメモリへ書き込み -> 書き込み待ち (state = 1010) -> メモリ読み出し -> 読み出し待ち (state = 1100) -> キャッシュ書き込み
 	//          + (dirtyビットが立っていない) -> メモリ読み出し -> 読み出し待ち (state = 1100) -> キャッシュ書き込み
-
 	//    + (stdaddrアドレス)
 	//      + cdataをメモリへ書き込み -> 書き込み待ち (state = 1011)
 	//    + (exitアドレス)
@@ -206,7 +204,6 @@ module cache#(
 	//      + 追い出しブロックの決定フェーズ (state = 0001)
 	//        + (dirtyビットが立っている) -> ブロックをメモリへ書き込み -> 書き込み待ち (state = 0010) -> メモリ読み出し -> 読み出し待ち (state = 0100) -> キャッシュ読み出し
 	//        + (dirtyビットが立っていない) -> メモリ読み出し -> 読み出し待ち (state = 0100) -> キャッシュ読み出し
-
 	always@(posedge clk or negedge rst) begin
 		if(!rst) begin
 			state <= 4'b0;
@@ -302,7 +299,7 @@ module cache#(
 						for(k = 0; k < block_size; k = k+1) begin
 							to_mem_tmp[k] <= data[k][addr_reg[index_msb:index_lsb]][lru];
 						end
-						state <= {state[3], 3'b010}; //メモリ書き込み待ちへ
+						state <= {state[3], 3'b010}; //メモリ書き込み待ちへ 5/1二つ目はこれ
 					end else begin //それ以外なら
 						mwrite <= 0;
 						mreq <= 1;
@@ -315,7 +312,7 @@ module cache#(
 						mwrite <= 0;
 						mreq <= 1;
 						maddr <= addr_reg & {{(addr_width-implicit_width){1'b1}}, {(implicit_width){1'b0}}};
-						state <= {state[3], 3'b100}; //読み出し待ちへ
+						state <= {state[3], 3'b100}; //読み出し待ちへ　5/1　三つめはこれ
 					end
 				4'bz100: //メモリ読み出し待ち
 					if(!ackm_n) begin //読み出しが完了したら
@@ -331,9 +328,9 @@ module cache#(
 						tag[addr_reg[index_msb:index_lsb]][lru] <= addr_reg[tag_msb:tag_lsb];
 						//last_accessを変更
 						last_access[addr_reg[index_msb:index_lsb]][lru] <= timer;
-						state <= {state[3], 3'b000};
+						state <= {state[3], 3'b000}; //5/1 四つ目はこれ
 					end
-				4'b1000: begin //キャッシュへ書き込み
+				4'b1000: begin //キャッシュへ書き込み //5/1 ここで更新されてる野までは正しそう
 					// 最終アクセスを更新
 					last_access[addr_reg[index_msb:index_lsb]][lru] <= timer;
 					dirty[addr_reg[index_msb:index_lsb]][lru] <= 1;

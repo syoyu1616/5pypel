@@ -79,7 +79,7 @@ module top#(
 	cache#(.cdata_width(32), .cache_size(DCACHE_SIZE), .assoc(DCACHE_ASSOC)) i_dcache(
 		.clk(clk), .rst(rst),
 		.creq(dreq), .cwrite(dwrite), 
-		.caddr(daddr), .csize(2'b10),//固定に変えた
+		.caddr(daddr), .csize(dsize),
 		.ackm_n(ackd_n),
 		.maddr(dad), .mreq(dmreq), .mwrite(dmwrite),
 		.ready_n(dready_n), .busy(dbusy),

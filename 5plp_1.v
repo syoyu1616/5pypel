@@ -35,8 +35,9 @@ module core(
 );
 
 	integer i;
-
-
+    //こいつを設定する必要あり
+    //assign dsize = 2'b10;
+    
   
     wire [4:0] WReg_pype;
     wire [1:0] ID_EX_write_pype2, ID_EX_write_pype3, ID_EX_write;
@@ -157,6 +158,7 @@ noper noper_unit (
     wire [2:0] MemBranch_pype2;
     wire [1:0] MemtoReg_pype2, MemRW_pype2;
     wire RegWrite_pype2;
+    wire [1:0] dsize_pype2;
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
     .PC_pype1(PC_pype1), 
@@ -186,7 +188,8 @@ noper noper_unit (
     .MemtoReg_pype2(MemtoReg_pype2), 
     .MemRW_pype2(MemRW_pype2), 
     .MemBranch_pype2(MemBranch_pype2),
-    .Instraction_pype2(Instraction_pype2));
+    .Instraction_pype2(Instraction_pype2),
+    .dsize_pype2(dsize_pype2));
 
 
     wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
@@ -194,6 +197,10 @@ noper noper_unit (
     wire[1:0] MemtoReg_pype3, MemRW_pype3;
     wire RegWrite_pype3, branch_nop;
 
+    wire [31:0] input_ddata;  // input用の信号
+    wire [31:0] output_ddata; // output用の信号
+
+    assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
 
     mem_access i_mem_access (.rst(rst), .clk(clk), .keep(stall_Mem), .nop(nop_Mem), 
     .RegWrite_pype2 (RegWrite_pype2),
@@ -208,14 +215,18 @@ noper noper_unit (
     .Instraction_pype2(Instraction_pype2), 
     .ID_EX_write_pype2(ID_EX_write_pype2),
     .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
+    .input_ddata(input_ddata),
+    .dsize_pype2(dsize_pype2),
 
+    .output_ddata(output_ddata),
     .ID_EX_write_pype3(ID_EX_write_pype3),
     .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
     .daddr (daddr), 
     .dreq(dreq), 
     .dwrite(dwrite), 
     .dready_n(dready_n),
-    .dbusy (dbusy), .ddata(ddata), 
+    .dbusy (dbusy),  
+    .dsize (dsize),
     .RegWrite_pype3(RegWrite_pype3), 
     .MemtoReg_pype3(MemtoReg_pype3), 
     .WReg_pype3(WReg_pype3),
@@ -225,6 +236,9 @@ noper noper_unit (
     .branch_PC(branch_PC),
     .branch_PC_contral(branch_PC_contral), 
     .Instraction_pype3(Instraction_pype3));
+
+    // inout信号をinput/output信号に分けて処理
+    assign ddata = input_ddata; // キャッシュから見てinputの奴をinoutに入れる
 
 
     wire[4:0] rs1, rs2, write_reg_address;

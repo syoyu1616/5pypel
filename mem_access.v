@@ -25,17 +25,21 @@ module mem_access(
     input [1:0] ID_EX_write_addi_pype2,
     output reg [1:0] ID_EX_write_addi_pype3,
 
+    input [1:0] dsize_pype2,
+
     
 
     //memへの入出力
     output  [31:0] daddr,
     output  dreq,
     output  dwrite,
+    output  [1:0] dsize,
 
     input dready_n,
     input dbusy,
 
-    inout [31:0] ddata,
+    output [31:0] input_ddata,//cashから見てinput
+    input [31:0] output_ddata,//cashから見てoutput
 
     output reg RegWrite_pype3,
     output reg [1:0] MemtoReg_pype3,
@@ -43,7 +47,7 @@ module mem_access(
     output reg [31:0] ALU_co_pype3,
     output reg [31:0] PCp4_pype3,
 
-    output [31:0]mem_data_pype,
+    output reg [31:0]mem_data_pype,
 
     //output reg [1:0] MemRW_pype3,
     
@@ -61,11 +65,15 @@ module mem_access(
 assign dreq = |MemRW_pype2;
 assign dwrite = MemRW_pype2[0];
 assign daddr = ALU_co_pype;
+assign dsize = dsize_pype2;
 
 
-assign ddata = (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
+assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
 //inoutのddataに対してMemRW_pype2[0]が1(書き込み)ならddataにread_data2_pype2の値を代入。それ以外なら読み出したddataをmem_data_pypeに入れる
-assign mem_data_pype = ddata;
+
+//assign mem_data_pype = (MemRW_pype2[1]) ? output_ddata : 32'bz;
+
+
 
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk, negedge rst) begin
@@ -82,6 +90,12 @@ always @(posedge clk, negedge rst) begin
         //MemRW_pype3 <= 2'b0;
         ID_EX_write_pype3 <= 0;
         ID_EX_write_addi_pype3 <= 0;
+        mem_data_pype <= 32'b0;
+
+        /*dreq <= 0;
+        dwrite <= 0;
+        daddr <= 32'b0;
+        input_ddata <= 32'b0;*/
     end
     
     else if (keep) begin
@@ -93,10 +107,15 @@ always @(posedge clk, negedge rst) begin
         branch_PC <= branch_PC;
         branch_PC_contral <= branch_PC_contral;
         Instraction_pype3 <= Instraction_pype3;
-        //MemRW_pype3 <= MemRW_pype3;
         ID_EX_write_pype3 <= ID_EX_write_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
 
+        mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
+
+        /*dreq <= dreq;
+        dwrite <= dwrite;
+        daddr <= daddr;
+        input_ddata <= input_ddata;*/
     end
 
 
@@ -113,6 +132,7 @@ always @(posedge clk, negedge rst) begin
         //MemRW_pype3 <= 2'b0;
         ID_EX_write_pype3 <= 0;
 
+        mem_data_pype <= 32'b0;
     end
 
     //メモリアクセス 書くときに確定で1クロック
@@ -151,6 +171,13 @@ always @(posedge clk, negedge rst) begin
     MemtoReg_pype3 <= MemtoReg_pype2;
     ID_EX_write_pype3 <= ID_EX_write_pype2;
     ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
+
+    mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : 32'bz;
+
+    /*dreq <= |MemRW_pype2;
+    dwrite <= MemRW_pype2[0];
+    daddr <= ALU_co_pype;
+    input_ddata <= (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;*/
 
 
 end

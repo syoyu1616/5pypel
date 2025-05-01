@@ -323,7 +323,7 @@ module decode (
                 MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b01;
                 MemBranch_pype <= 3'b000;
-                ALU_Src_pype <= 3'b100;
+                ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_store;
 
                 Imm_pype <= $signed(imm_S);
@@ -368,9 +368,10 @@ module decode (
         PCp4_pype1 <= PCp4_pype0;
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
+        read_data1_pype <= ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1)) ? write_reg_data : read_data1;
+        read_data2_pype <= ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1)) ? write_reg_data : read_data2;
 
-        read_data1_pype <= (ID_EX_write[1] == 1) ? write_reg_data : read_data1;
-        read_data2_pype <= (ID_EX_write[0] == 1) ? write_reg_data : read_data2;
+
     end
 end
 
