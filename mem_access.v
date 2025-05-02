@@ -73,7 +73,7 @@ assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
 
 //assign mem_data_pype = (MemRW_pype2[1]) ? output_ddata : 32'bz;
 
-
+reg keep_mem_data_updated;
 
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk, negedge rst) begin
@@ -91,6 +91,8 @@ always @(posedge clk, negedge rst) begin
         ID_EX_write_pype3 <= 0;
         ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
+
+        keep_mem_data_updated <= 0;
 
         /*dreq <= 0;
         dwrite <= 0;
@@ -110,7 +112,11 @@ always @(posedge clk, negedge rst) begin
         ID_EX_write_pype3 <= ID_EX_write_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
 
-        mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
+        //mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
+        if (!keep_mem_data_updated && MemRW_pype2[1] && ^output_ddata !== 1'bx) begin
+            mem_data_pype <= output_ddata;
+            keep_mem_data_updated <= 1;
+        end
 
         /*dreq <= dreq;
         dwrite <= dwrite;
@@ -131,7 +137,7 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype3 <= 32'b0;
         //MemRW_pype3 <= 2'b0;
         ID_EX_write_pype3 <= 0;
-
+        keep_mem_data_updated <= 0;
         mem_data_pype <= 32'b0;
     end
 
@@ -172,12 +178,17 @@ always @(posedge clk, negedge rst) begin
     ID_EX_write_pype3 <= ID_EX_write_pype2;
     ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
 
-    mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : 32'bz;
+    mem_data_pype <= (keep_mem_data_updated) ? mem_data_pype:
+                    (MemRW_pype2[1]) ? output_ddata : 32'bz;
 
     /*dreq <= |MemRW_pype2;
     dwrite <= MemRW_pype2[0];
     daddr <= ALU_co_pype;
     input_ddata <= (MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;*/
+    keep_mem_data_updated <= 0;
+
+
+
 
 
 end

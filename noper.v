@@ -106,7 +106,7 @@ module noper(
     assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1 || hazard_pype2;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
     assign nop_ID  = branch_PC_contral || hazard_pype1;  // 分岐成立でIDの命令潰す
     assign nop_EX  = branch_PC_contral;// || hazard_pype2; // 分岐 or データハザードでEXをバブル
-    assign nop_Mem = 1'b0;//branch_PC_contral;
+    assign nop_Mem = branch_PC_contral;//branch_PC_contral これがないとbranch成立の後ろが書き込んじゃう
     assign nop_WB  = 1'b0; //branch--で様子見
 
 
