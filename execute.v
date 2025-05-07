@@ -16,8 +16,8 @@ module execute(
 
     input [31:0] Instraction_pype1,
 
-    input [1:0] ID_EX_write_addi_pype1,
-    output reg [1:0] ID_EX_write_addi_pype2,
+    //input [1:0] ID_EX_write_addi_pype1,
+    //output reg [1:0] ID_EX_write_addi_pype2,
 
     //制御線
     input RegWrite_pype1,
@@ -110,21 +110,7 @@ assign branch_PC = branch_PC_wire*/
 
 always @(posedge clk, negedge rst) begin
 
-    if (nop) begin
-        ALU_co_pype <= 32'b0;
-        PCBranch_pype2 <= 32'b0;
-        read_data2_pype2 <= 32'b0;
-        PCp4_pype2 <= 32'b0;
-        WReg_pype2 <= 5'b0;
-        RegWrite_pype2 <= 1'b0;
-        MemtoReg_pype2 <= 2'b0;
-        MemRW_pype2 <= 2'b0;
-        MemBranch_pype2 <= 1'b0;
-        Instraction_pype2 <= 32'b0;
-        ID_EX_write_addi_pype2 <= 32'b0;
-        dsize_pype2 <= 2'b00;
-
-    end else if (keep) begin
+    if (keep) begin
         ALU_co_pype <= ALU_co_pype;
         PCBranch_pype2 <= PCBranch_pype2;
         read_data2_pype2 <= read_data2_pype2;
@@ -135,8 +121,23 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= MemRW_pype2;
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
-        ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype2;
+        //ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype2;
         dsize_pype2 <= dsize_pype2;
+
+ 
+    end else if (nop) begin
+        ALU_co_pype <= 32'b0;
+        PCBranch_pype2 <= 32'b0;
+        read_data2_pype2 <= 32'b0;
+        PCp4_pype2 <= 32'b0;
+        WReg_pype2 <= 5'b0;
+        RegWrite_pype2 <= 1'b0;
+        MemtoReg_pype2 <= 2'b0;
+        MemRW_pype2 <= 2'b0;
+        MemBranch_pype2 <= 1'b0;
+        Instraction_pype2 <= 32'b0;
+        //ID_EX_write_addi_pype2 <= 32'b0;
+        dsize_pype2 <= 2'b00;
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -149,7 +150,7 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
-        ID_EX_write_addi_pype2 <= 32'b0;
+        //ID_EX_write_addi_pype2 <= 32'b0;
     end
 
 
@@ -219,7 +220,7 @@ endcase
     Instraction_pype2 <= Instraction_pype1;
     RegWrite_pype2 <= RegWrite_pype1;
 
-    ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype1;
+    //ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype1;
 end
 end
 endmodule

@@ -41,7 +41,7 @@ module core(
   
     wire [4:0] WReg_pype;
     wire [1:0] ID_EX_write_pype2, ID_EX_write_pype3, ID_EX_write;
-    wire [1:0] ID_EX_write_addi_pype1, ID_EX_write_addi_pype2, ID_EX_write_addi_pype3, ID_EX_write_addi;
+    wire [1:0] ID_EX_write_addi_pype1, ID_EX_write_addi_pype2, ID_EX_write_addi_pype3, ID_EX_write_addi, ID_EX_write_rw;
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
 
@@ -52,6 +52,8 @@ noper noper_unit (
     // 読み取りレジスタ（IDステージから）
     .fornop_register1_pype (fornop_register1_pype),
     .fornop_register2_pype (fornop_register2_pype),
+    .fornop_register1_pype1 (fornop_register1_pype1),
+    .fornop_register2_pype1 (fornop_register2_pype1),
 
     // 書き込み情報（EX, MEM, WBステージ）
     .WReg_pype     (WReg_pype),
@@ -65,8 +67,9 @@ noper noper_unit (
     .Regwrite    (Regwrite),
     .write_reg_address  (write_reg_address),
 
-    .ID_EX_write_pype2  (ID_EX_write_pype2),
-    .ID_EX_write_addi_pype1  (ID_EX_write_addi_pype1),
+    .ID_EX_write_pype3  (ID_EX_write_pype3),
+    .ID_EX_write_addi_pype2  (ID_EX_write_addi_pype2),
+    .ID_EX_write_rw  (ID_EX_write_rw),
 
 
     // 分岐成立
@@ -123,6 +126,7 @@ noper noper_unit (
     wire [1:0] MemtoReg_pype1, MemRW_pype1;
     wire [2:0] MemBranch_pype, ALU_control_pype, ALU_Src_pype;
     wire [6:0] ALU_command_7;
+    wire [4:0] fornop_register1_pype1, fornop_register2_pype1;
     
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
@@ -137,8 +141,14 @@ noper noper_unit (
     .read_reg2(read_reg2),
     .ID_EX_write(ID_EX_write), 
     .ID_EX_write_addi (ID_EX_write_addi),
+    .ID_EX_write_rw (ID_EX_write_rw),
     .write_reg_data(write_reg_data),
-    
+    .fornop_register1_pype(fornop_register1_pype),
+    .fornop_register2_pype(fornop_register2_pype),
+    .Regwrite(Regwrite),
+
+    .fornop_register1_pype1(fornop_register1_pype1),
+    .fornop_register2_pype1(fornop_register2_pype1),
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
     .Imm_pype(Imm_pype),
@@ -169,9 +179,9 @@ noper noper_unit (
     .for_ALU_c(for_ALU_c),
     .WReg_pype(WReg_pype), 
     .Instraction_pype1(Instraction_pype1), 
-    .ID_EX_write_addi_pype1(ID_EX_write_addi_pype1),
+    //.ID_EX_write_addi_pype1(ID_EX_write_addi_pype1),
 
-    .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
+    //.ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
     .RegWrite_pype1(RegWrite_pype1), 
     .MemtoReg_pype1(MemtoReg_pype1), 
     .MemRW_pype1(MemRW_pype1),
@@ -213,13 +223,13 @@ noper noper_unit (
     .read_data2_pype2(read_data2_pype2),
     .WReg_pype2 (WReg_pype2), 
     .Instraction_pype2(Instraction_pype2), 
-    .ID_EX_write_pype2(ID_EX_write_pype2),
+    //.ID_EX_write_pype2(ID_EX_write_pype2),
     .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
     .input_ddata(input_ddata),
     .dsize_pype2(dsize_pype2),
 
     .output_ddata(output_ddata),
-    .ID_EX_write_pype3(ID_EX_write_pype3),
+    //.ID_EX_write_pype3(ID_EX_write_pype3),
     .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
     .daddr (daddr), 
     .dreq(dreq), 

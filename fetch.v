@@ -28,8 +28,8 @@ module fetch (
 
 //assign Instraction_pype = idata;
 assign Instraction_pype = nop ? 32'b0000000000000000000000000000000:idata;//is_nop周りはまだ未変更
-assign fornop_register1_pype = idata[19:15];
-assign fornop_register2_pype = idata[24:20];
+assign fornop_register1_pype = Instraction_pype[19:15];
+assign fornop_register2_pype = Instraction_pype[24:20];
 
     reg [31:0] next_iaddr;
     reg [31:0] next_PC_pype0;
