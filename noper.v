@@ -116,12 +116,7 @@ always @(posedge clk or negedge rst) begin
             ID_EX_write_pype3 <= { (WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype) };
         else
             ID_EX_write_pype3 <= 2'b00;
-        /*
-        if (RegWrite_pype3 && (WReg_pype3 != 0))
-            ID_EX_write_rw <= { (WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype) };
-        else
-            ID_EX_write_rw <= 2'b00;
-        */
+        
     end
 end
 

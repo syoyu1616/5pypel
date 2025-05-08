@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Wed May  7 08:12:58 2025
+[*] Thu May  8 01:58:38 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Wed May  7 07:19:16 2025"
-[dumpfile_size] 15835136
+[dumpfile_mtime] "Thu May  8 01:53:22 2025"
+[dumpfile_size] 15380480
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 25890
+[timestart] 12385
 [size] 1000 600
 [pos] -1 -1
-*-5.000000 25911 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-4.000000 12390 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
@@ -17,15 +17,15 @@
 [signals_width] 246
 [sst_expanded] 1
 [sst_vpaned_height] 157
-@23
-top_test.i_top.i_core.i_fetch.iaddr[31:0]
 @22
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
 top_test.i_top.i_core.i_fetch.idata[31:0]
 @4022
 ^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 @22
 top_test.i_top.i_core.i_decode.Instraction_pype1[31:0]
+top_test.i_top.i_core.i_mem_access.Instraction_pype2[31:0]
 top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
 @28
 top_test.i_top.i_core.i_mem_access.MemBranch_pype2[2:0]
@@ -39,16 +39,14 @@ top_test.i_top.i_dcache.cout[31:0]
 top_test.i_top.i_dcache.cdata[31:0]
 top_test.i_top.i_core.i_mem_access.mem_data_pype[31:0]
 top_test.i_top.i_dcache.state[3:0]
-@4022
-^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
-top_test.i_top.i_core.i_mem_access.Instraction_pype2[31:0]
 @28
 top_test.i_top.i_core.i_mem_access.dreq
 @22
-top_test.i_top.i_core.i_regfile.rd[4:0]
 top_test.i_top.i_core.i_regfile.in[31:0]
+top_test.i_top.i_core.i_regfile.rd[4:0]
 @28
 top_test.i_top.i_core.i_regfile.write_n
+@29
 top_test.i_top.i_core.noper_unit.mem_ac_stall
 [pattern_trace] 1
 [pattern_trace] 0

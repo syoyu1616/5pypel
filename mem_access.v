@@ -61,12 +61,18 @@ module mem_access(
 );
 
 //4/24 ロードが上手く待ててなさそうな問題について
-
+/*
 assign dreq      = (branch_PC_contral == 0) ? |MemRW_pype2         : 1'b0;
 assign dwrite    = (branch_PC_contral == 0) ? MemRW_pype2[0]       : 1'b0;
 assign daddr     = (branch_PC_contral == 0) ? ALU_co_pype          : 32'b0;
 assign dsize     = (branch_PC_contral == 0) ? dsize_pype2          : 2'b00;
 assign input_ddata = (branch_PC_contral == 0 && MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
+*/
+assign dreq      = |MemRW_pype2;
+assign dwrite    = MemRW_pype2[0];
+assign daddr     = ALU_co_pype;
+assign dsize     = dsize_pype2;
+assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
 //inoutのddataに対してMemRW_pype2[0]が1(書き込み)ならddataにread_data2_pype2の値を代入。それ以外なら読み出したddataをmem_data_pypeに入れる
 
@@ -77,27 +83,7 @@ reg keep_mem_data_updated;
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk, negedge rst) begin
 
-    if (nop) begin
-        RegWrite_pype3 <= 1'b0;
-        MemtoReg_pype3 <= 2'b0;
-        WReg_pype3 <= 5'b0;
-        ALU_co_pype3 <= 32'b0;
-        PCp4_pype3 <= 32'b0;
-        branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;
-        Instraction_pype3 <= 32'b0;
-        //MemRW_pype3 <= 2'b0;
-        //ID_EX_write_pype3 <= 0;
-        ID_EX_write_addi_pype3 <= 0;
-        mem_data_pype <= 32'b0;
-        keep_mem_data_updated <= 0;
-        /*dreq <= 0;
-        dwrite <= 0;
-        daddr <= 32'b0;
-        input_ddata <= 32'b0;*/
-    end
-    
-    else if (keep) begin
+    if (keep) begin
         RegWrite_pype3 <= RegWrite_pype3;
         MemtoReg_pype3 <= MemtoReg_pype3;
         WReg_pype3 <= WReg_pype3;
@@ -106,19 +92,22 @@ always @(posedge clk, negedge rst) begin
         branch_PC <= branch_PC;
         branch_PC_contral <= branch_PC_contral;
         Instraction_pype3 <= Instraction_pype3;
-        //ID_EX_write_pype3 <= ID_EX_write_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
+        mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
 
-        //mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
-        if (!keep_mem_data_updated && MemRW_pype2[1] && ^output_ddata !== 1'bx) begin
-            mem_data_pype <= output_ddata;
-            keep_mem_data_updated <= 1;
-        end
-
-        /*dreq <= dreq;
-        dwrite <= dwrite;
-        daddr <= daddr;
-        input_ddata <= input_ddata;*/
+    end
+    
+    else if (nop) begin
+        RegWrite_pype3 <= 1'b0;
+        MemtoReg_pype3 <= 2'b0;
+        WReg_pype3 <= 5'b0;
+        ALU_co_pype3 <= 32'b0;
+        PCp4_pype3 <= 32'b0;
+        branch_PC <= 32'b0;
+        branch_PC_contral <= 1'b0;
+        Instraction_pype3 <= 32'b0;
+        ID_EX_write_addi_pype3 <= 0;
+        mem_data_pype <= 32'b0;
     end
 
 
@@ -175,8 +164,10 @@ always @(posedge clk, negedge rst) begin
     MemtoReg_pype3 <= MemtoReg_pype2;
     ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
 
-    mem_data_pype <= (keep_mem_data_updated) ? mem_data_pype:
-                    (MemRW_pype2[1]) ? output_ddata : 32'bz;
+    /*mem_data_pype <= (keep_mem_data_updated) ? mem_data_pype:
+                    (MemRW_pype2[1]) ? output_ddata : 32'bz;*/
+
+    mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'bz;
 
     keep_mem_data_updated <= 0;
 

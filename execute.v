@@ -109,8 +109,10 @@ assign branch_PC = branch_PC_wire*/
 
 
 always @(posedge clk, negedge rst) begin
-
+//keepが上だとkeep中のnopが上手くいかない
+//nopが上だとkeepが割り込んできたときのID/EX_write_pypeが上手くいかない
     if (keep) begin
+
         ALU_co_pype <= ALU_co_pype;
         PCBranch_pype2 <= PCBranch_pype2;
         read_data2_pype2 <= read_data2_pype2;
@@ -121,11 +123,10 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= MemRW_pype2;
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
-        //ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype2;
         dsize_pype2 <= dsize_pype2;
-
  
     end else if (nop) begin
+
         ALU_co_pype <= 32'b0;
         PCBranch_pype2 <= 32'b0;
         read_data2_pype2 <= 32'b0;
@@ -136,7 +137,6 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
-        //ID_EX_write_addi_pype2 <= 32'b0;
         dsize_pype2 <= 2'b00;
 
     end  else if (!rst) begin
@@ -201,10 +201,8 @@ always @(posedge clk, negedge rst) begin
 case (ALU_control_pype)
     `ALU_co_pype_load: begin
         case (for_ALU_c)
-            4'b0000,
-            4'b0100: dsize_pype2 <= 2'b00; // 1バイト
-            4'b0001,
-            4'b0101: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
+            4'b0000, 4'b0100: dsize_pype2 <= 2'b00; // 1バイト
+            4'b0001, 4'b0101: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
             default: dsize_pype2 <= 2'b10; // 4バイト（defaultがないと働かない）
         endcase
     end
