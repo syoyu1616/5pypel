@@ -1,0 +1,62 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Thu May  8 07:45:23 2025
+[*]
+[dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
+[dumpfile_mtime] "Thu May  8 07:01:27 2025"
+[dumpfile_size] 163868672
+[savefile] "/home/seigo/modules/programs/5pypel/for_napia_easy.gtkw"
+[timestart] 226694
+[size] 1000 600
+[pos] -1 -1
+*-6.000000 226750 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top_test.
+[treeopen] top_test.i_top.
+[treeopen] top_test.i_top.i_core.
+[sst_width] 352
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@23
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@22
+top_test.i_top.i_core.i_fetch.idata[31:0]
+@4022
+^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
+top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
+@22
+top_test.i_top.i_core.i_execute.ALU_data1[31:0]
+top_test.i_top.i_core.i_execute.ALU_data2[31:0]
+top_test.i_top.i_core.i_execute.ALU_co_pype[31:0]
+top_test.i_top.i_dcache.caddr[31:0]
+top_test.i_top.i_dcache.cout[31:0]
+top_test.i_top.i_dcache.cdata[31:0]
+top_test.i_top.i_core.i_mem_access.mem_data_pype[31:0]
+@28
+top_test.i_top.i_dcache.csize[1:0]
+top_test.i_top.i_dcache.creq
+top_test.i_top.i_dcache.cwrite
+@c00022
+top_test.i_top.i_dcache.state[3:0]
+@28
+(0)top_test.i_top.i_dcache.state[3:0]
+(1)top_test.i_top.i_dcache.state[3:0]
+(2)top_test.i_top.i_dcache.state[3:0]
+(3)top_test.i_top.i_dcache.state[3:0]
+@1401200
+-group_end
+@28
+top_test.i_top.i_dcache.hit
+@22
+top_test.i_top.i_core.i_regfile.in[31:0]
+top_test.i_top.i_core.i_regfile.rd[4:0]
+@28
+top_test.i_top.i_core.i_regfile.write_n
+top_test.i_top.i_dcache.way_hit[1:0]
+@22
+top_test.i_top.i_dcache.way_hit_one_hot[3:0]
+@28
+top_test.i_top.i_dcache.ready_n
+top_test.i_top.i_dcache.busy
+[pattern_trace] 1
+[pattern_trace] 0

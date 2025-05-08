@@ -176,7 +176,7 @@ always @(posedge clk, negedge rst) begin
 
     
     case(MemBranch_pype)
-            3'b100: begin
+            3'b111: begin
             case(for_ALU_c)
                 4'b0001: PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
             endcase

@@ -93,7 +93,7 @@ always @(posedge clk, negedge rst) begin
         branch_PC_contral <= branch_PC_contral;
         Instraction_pype3 <= Instraction_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
-        mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : mem_data_pype;
+        mem_data_pype <= /*(MemRW_pype2[1]) ? output_ddata : */mem_data_pype;
 
     end
     
@@ -121,8 +121,6 @@ always @(posedge clk, negedge rst) begin
         branch_PC <= 32'b0;
         branch_PC_contral <= 1'b0;
         Instraction_pype3 <= 32'b0;
-        //MemRW_pype3 <= 2'b0;
-        //ID_EX_write_pype3 <= 0;
         keep_mem_data_updated <= 0;
         mem_data_pype <= 32'b0;
     end
