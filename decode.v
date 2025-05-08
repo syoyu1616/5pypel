@@ -157,7 +157,7 @@ module decode (
         read_data1_pype <= (Regwrite == 0) && ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1)|| (ID_EX_write_rw[1] == 1)) ? write_reg_data : read_data1_pype;
         read_data2_pype <= (Regwrite == 0) && ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1)|| (ID_EX_write_rw[0] == 1)) ? write_reg_data : read_data2_pype;
         fornop_register1_pype1 <= fornop_register1_pype1;
-        fornop_register2_pype1 <= fornop_register1_pype1;
+        fornop_register2_pype1 <= fornop_register2_pype1;
 
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
