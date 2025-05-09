@@ -1,11 +1,11 @@
-/*
-top_test: CPCプロセッサ設計演習用テストベンチ
+/////////////////////////////////////////////////////
+//top_test: CPCプロセッサ設計演習用テストベンチ
+//
+//2024/04/03 多分完成している
+//2024/04/21 テスト完了
+/////////////////////////////////////////////////////
 
-2024/04/03 多分完成している
-2024/04/21 テスト完了
-*/
-
-`timescale 1ns/1ns
+`timescale 1ns/1ps
 
 `include "top1.v"
 
@@ -24,18 +24,19 @@ parameter MEMBLOCK_SIZE = 32; //メモリの最小アクセス単位
 //メモリ関連
 parameter MEM_SIZE 		= 32'h1000_0000; //メモリサイズ
 parameter DMEM_LAT 		= 100;           //データ用メモリアクセスラインのレイテンシ
-parameter IMEM_LAT 		= 100;           //命令用メモリアクセスラインのレイテンシ 4/16 100から10に変えてみて変化なし
+parameter IMEM_LAT 		= 100;           //命令用メモリアクセスラインのレイテンシ
 parameter STDOUT_ADDR 	= 32'hf000_0000; //このアドレスに書き込まれたデータは標準出力される
 parameter EXIT_ADDR 	= 32'hff00_0000; //このアドレスにアクセスがあるとシミュレーションが終了する
 
 //キャッシュの設定
 //ここでの設定はシミュレーションのみで有効
 //論理合成でも適用したい場合はtopのパラメータ値を変更すること
+//*
 parameter ICACHE_SIZE = 4096;
 parameter ICACHE_ASSOC = 4;
 parameter DCACHE_SIZE = 4096;
 parameter DCACHE_ASSOC = 4;
-
+//*/
 
 //reg/wireの定義
 reg clk, rst;
@@ -150,9 +151,9 @@ initial begin
 
 	//リセット
 	rst = 1'b1;
-	#10 
+	#1 
 	rst = 1'b0;
-	#10
+	#1
 	rst = 1'b1;
 end
 

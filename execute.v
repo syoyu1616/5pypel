@@ -157,8 +157,8 @@ always @(posedge clk, negedge rst) begin
     else begin
     case(ALU_control)
             `ALU_OP_ADD: ALU_co_pype <= ALU_data1 + ALU_data2;
-            //`ALU_OP_SUB: ALU_co_pype <= ALU_data1 - ALU_data2;
-            `ALU_OP_SUB: ALU_co_pype <= $signed(ALU_data1) - $signed(ALU_data2);
+            `ALU_OP_SUB: ALU_co_pype <= ALU_data1 - ALU_data2;
+            //`ALU_OP_SUB: ALU_co_pype <= $signed(ALU_data1) - $signed(ALU_data2);
 
             `ALU_OP_AND: ALU_co_pype <= ALU_data1 & ALU_data2;
             `ALU_OP_OR:  ALU_co_pype <= ALU_data1 | ALU_data2;
@@ -171,15 +171,13 @@ always @(posedge clk, negedge rst) begin
             `ALU_OP_SLTU: ALU_co_pype <= $unsigned(ALU_data1) < $unsigned(ALU_data2) ? 32'b1 : 32'b0;
             default: ALU_co_pype <= 32'b0;
         endcase
-
-
-
     
     case(MemBranch_pype)
             3'b111: begin
-            case(for_ALU_c)
-                4'b0001: PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
-            endcase
+            //case(for_ALU_c)
+                /*4'b0001: */
+            PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
+            //endcase
             end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
     endcase

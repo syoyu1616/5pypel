@@ -60,7 +60,6 @@ module mem_access(
 
 );
 
-//4/24 ロードが上手く待ててなさそうな問題について
 
 assign dreq      = |MemRW_pype2;
 assign dwrite    = MemRW_pype2[0];
@@ -88,11 +87,9 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= WReg_pype3;
         ALU_co_pype3 <= ALU_co_pype3;
         PCp4_pype3 <= PCp4_pype3;
-        /*branch_PC <= branch_PC;
-        branch_PC_contral <= branch_PC_contral;*/
         Instraction_pype3 <= Instraction_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
-        mem_data_pype <= /*(MemRW_pype2[1]) ? output_ddata : */mem_data_pype;
+        mem_data_pype <= /*(MemRW_pype2[1]) ? output_ddata :*/ mem_data_pype;
 
     end
     
@@ -102,8 +99,6 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        /*branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;*/
         Instraction_pype3 <= 32'b0;
         ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
@@ -154,11 +149,7 @@ always @(posedge clk, negedge rst) begin
     Instraction_pype3 <= Instraction_pype2;
     MemtoReg_pype3 <= MemtoReg_pype2;
     ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
-
-    /*mem_data_pype <= (keep_mem_data_updated) ? mem_data_pype:
-                    (MemRW_pype2[1]) ? output_ddata : 32'bz;*/
-
-    mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'bz;
+    mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'b0;
 
 end
 end

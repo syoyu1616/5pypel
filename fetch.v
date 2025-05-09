@@ -35,8 +35,7 @@ assign fornop_register2_pype = Instraction_pype[24:20];
     reg [31:0] next_PC_pype0;
     reg [31:0] next_PCp4_pype0;
 
-always @(posedge clk) begin
-
+always @(posedge clk, negedge rst) begin
 
     if (!rst) begin
         next_iaddr = 32'h0001_0000;

@@ -1,0 +1,35 @@
+[*]
+[*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
+[*] Fri May  9 06:04:35 2025
+[*]
+[dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
+[dumpfile_mtime] "Fri May  9 06:03:59 2025"
+[dumpfile_size] 77197312
+[savefile] "/home/seigo/modules/programs/5pypel/nazobanchi.gtkw"
+[timestart] 218006
+[size] 1000 600
+[pos] -1 -1
+*-4.000000 218019 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] top_test.
+[treeopen] top_test.i_top.
+[treeopen] top_test.i_top.i_core.
+[sst_width] 352
+[signals_width] 206
+[sst_expanded] 1
+[sst_vpaned_height] 157
+@22
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
+top_test.i_top.i_core.i_fetch.idata[31:0]
+top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
+top_test.i_top.i_dcache.caddr[31:0]
+top_test.i_top.i_dcache.cout[31:0]
+top_test.i_top.i_dcache.cdata[31:0]
+@29
+top_test.i_top.i_dcache.csize[1:0]
+@28
+top_test.i_top.i_dcache.creq
+top_test.i_top.i_dcache.cwrite
+@22
+top_test.i_top.i_core.i_regfile.in[31:0]
+[pattern_trace] 1
+[pattern_trace] 0

@@ -74,7 +74,7 @@ module decode (
 
 	wire [6:0] opcode;
 		assign opcode = Instraction_pype[6:0];
-	wire [31:0] imm_I;
+/*	wire [31:0] imm_I;
 		assign imm_I = {{20{Instraction_pype[31]}}, Instraction_pype[31:20]};
 	wire [31:0] imm_S;
 		assign imm_S = {{20{Instraction_pype[31]}}, Instraction_pype[31:25], Instraction_pype[11:7]};
@@ -83,38 +83,44 @@ module decode (
 	wire [31:0] imm_U;
 		assign imm_U = {Instraction_pype[31:12], 12'b0};
 	wire [31:0] imm_J;
-        assign imm_J = {{20{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};
-    
-		//assign imm_J = {{11{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};
+        assign imm_J = {{20{Instraction_pype[31]}}, Instraction_pype[19:12], Instraction_pype[20], Instraction_pype[30:21], 1'b0};*/
+
+    //immgen: 即値を生成する
+    function[31:0] immgen(
+        input[31:0] inst
+    );
+        case(inst[6:0])
+            `OP_LOAD:  immgen = {{20{inst[31]}}, inst[31:20]};
+            `OP_ALUI:  immgen = inst[14:12] == `FCT3_SRL ? {{27{1'b0}}, inst[24:20]} : {{20{inst[31]}}, inst[31:20]};
+            `OP_STORE: immgen = {{20{inst[31]}}, inst[31:25], inst[11:7]};
+            `OP_BRA:   immgen = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
+            `OP_AUIPC: immgen = {inst[31:12], 12'b0};
+            `OP_LUI:   immgen = {inst[31:12], 12'b0};
+            `OP_JALR:  immgen = {{20{inst[31]}}, inst[31:20]};
+            `OP_JAL:   immgen = {{20{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
+            default:   immgen = 32'b0;
+        endcase
+    endfunction
+
+    wire [31:0] imm;
+    assign imm = immgen (Instraction_pype);
 
     wire [2:0] funct3;
     wire [6:0] funct7;
 
     wire [4:0] rd;
-    /*
-    wire [4:0] rs1;
-    wire [4:0] rs2;
-    */
 
     assign rd = Instraction_pype[11:7];
-    /*
-    assign rs1 = Instraction_pype[19:15];
-    assign rs2 = Instraction_pype[24:20];
-    */
-
     assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
     assign funct7 = Instraction_pype[31:25];
 
     assign read_reg1 = Instraction_pype[19:15];
-    assign read_reg2 = Instraction_pype[24:20]; //ここがregかも
+    assign read_reg2 = Instraction_pype[24:20]; 
 
-    /*assign read_data1_pype = read_data1;
-    assign read_data2_pype = read_data2;*/
 
     always @(posedge clk, negedge rst) begin
 
     if (nop) begin
-
         //制御線維持
         RegWrite_pype1 <= 0;
         MemtoReg_pype1 <= 2'b0;
@@ -122,6 +128,7 @@ module decode (
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
+        ALU_command_7 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -148,6 +155,7 @@ module decode (
         MemBranch_pype <= MemBranch_pype;
         ALU_Src_pype <= ALU_Src_pype;
         ALU_control_pype <= ALU_control_pype;
+        ALU_command_7 <= ALU_command_7;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -174,6 +182,7 @@ module decode (
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
+        ALU_command_7 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -204,7 +213,7 @@ module decode (
                 ALU_Src_pype <= 3'b0;
                 ALU_control_pype <= `ALU_co_pype_nou;
 
-                Imm_pype <= imm_U;
+                Imm_pype <= imm;
                 for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
             end
@@ -218,7 +227,7 @@ module decode (
                 ALU_Src_pype <= 3'b100;
                 ALU_control_pype <= `ALU_co_pype_normal;
 
-                Imm_pype <= imm_U;
+                Imm_pype <= imm;
                 for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
 
@@ -234,7 +243,7 @@ module decode (
                 ALU_Src_pype <= 3'b100;
                 ALU_control_pype <= `ALU_co_pype_j;
 
-                Imm_pype <= $signed(imm_J);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= 4'b0000;//jalrとの差別化
                 WReg_pype <= rd;
             end
@@ -249,7 +258,7 @@ module decode (
                 ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_j;
 
-                Imm_pype <= $signed(imm_I);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= 4'b0001;
                 WReg_pype <= rd;
             end
@@ -264,7 +273,7 @@ module decode (
                 ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_load;
 
-                Imm_pype <= $signed(imm_I);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= rd;
             end
@@ -278,7 +287,7 @@ module decode (
                 ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_normal;
 
-                Imm_pype <= $signed(imm_I);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= rd;
 
@@ -294,30 +303,25 @@ module decode (
                 ALU_Src_pype <= 3'b011;
                 ALU_control_pype <= `ALU_co_pype_coo;
 
-                Imm_pype <= $signed(imm_B);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
 
                 case (funct3)
                     `FCT3_BEQ: begin
                         MemBranch_pype <= `MEMB_BEQ;
                     end
-
                     `FCT3_BNE: begin
                         MemBranch_pype <= `MEMB_BNE;
                     end
-
                     `FCT3_BLT: begin
                         MemBranch_pype <= `MEMB_BLT;
                     end
-
                     `FCT3_BGE: begin
                         MemBranch_pype <= `MEMB_BGE;
                     end
-
                     `FCT3_BLTU: begin
                         MemBranch_pype <= `MEMB_BLT;
                     end
-
                     `FCT3_BGEU: begin
                         MemBranch_pype <= `MEMB_BGE;
                     end
@@ -335,7 +339,7 @@ module decode (
                 ALU_Src_pype <= 3'b010;
                 ALU_control_pype <= `ALU_co_pype_store;
 
-                Imm_pype <= $signed(imm_S);
+                Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= 5'b000;
             end
