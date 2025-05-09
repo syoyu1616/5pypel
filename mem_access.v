@@ -52,8 +52,8 @@ module mem_access(
     //output reg [1:0] MemRW_pype3,
     
 
-    output reg [31:0] branch_PC,
-    output reg branch_PC_contral,
+    output  [31:0] branch_PC,
+    output  branch_PC_contral,
 
 
     output reg [31:0] Instraction_pype3
@@ -61,24 +61,23 @@ module mem_access(
 );
 
 //4/24 ロードが上手く待ててなさそうな問題について
-/*
-assign dreq      = (branch_PC_contral == 0) ? |MemRW_pype2         : 1'b0;
-assign dwrite    = (branch_PC_contral == 0) ? MemRW_pype2[0]       : 1'b0;
-assign daddr     = (branch_PC_contral == 0) ? ALU_co_pype          : 32'b0;
-assign dsize     = (branch_PC_contral == 0) ? dsize_pype2          : 2'b00;
-assign input_ddata = (branch_PC_contral == 0 && MemRW_pype2[0]) ? read_data2_pype2 : 32'bz;
-*/
+
 assign dreq      = |MemRW_pype2;
 assign dwrite    = MemRW_pype2[0];
 assign daddr     = ALU_co_pype;
 assign dsize     = dsize_pype2;
 assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
-//inoutのddataに対してMemRW_pype2[0]が1(書き込み)ならddataにread_data2_pype2の値を代入。それ以外なら読み出したddataをmem_data_pypeに入れる
+assign branch_PC_contral =
+    ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
+     (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
+     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
+     (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype == 32'b1) ||
+     (MemBranch_pype2 == `MEMB_JAL) ||
+     (MemBranch_pype2 == `MEMB_JALR));
 
-//assign mem_data_pype = (MemRW_pype2[1]) ? output_ddata : 32'bz;
-
-reg keep_mem_data_updated;
+assign branch_PC = (MemBranch_pype2 == `MEMB_JALR) ? ALU_co_pype :PCBranch_pype2;
+                                                        
 
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk, negedge rst) begin
@@ -89,8 +88,8 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= WReg_pype3;
         ALU_co_pype3 <= ALU_co_pype3;
         PCp4_pype3 <= PCp4_pype3;
-        branch_PC <= branch_PC;
-        branch_PC_contral <= branch_PC_contral;
+        /*branch_PC <= branch_PC;
+        branch_PC_contral <= branch_PC_contral;*/
         Instraction_pype3 <= Instraction_pype3;
         ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
         mem_data_pype <= /*(MemRW_pype2[1]) ? output_ddata : */mem_data_pype;
@@ -103,8 +102,8 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;
+        /*branch_PC <= 32'b0;
+        branch_PC_contral <= 1'b0;*/
         Instraction_pype3 <= 32'b0;
         ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
@@ -118,22 +117,16 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;
+        /*branch_PC <= 32'b0;
+        branch_PC_contral <= 1'b0;*/
         Instraction_pype3 <= 32'b0;
-        keep_mem_data_updated <= 0;
+        ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
     end
 
-    //メモリアクセス 書くときに確定で1クロック
-//    dreq <= |MemRW_pype2;
-//    dwrite <= MemRW_pype2[0];
-
-//    daddr <= ALU_co_pype;
-    //branch
-    //Membranch_pype2が`MEMB_BEQかつALU_co_pypeが0, MemBranch_pyep2が`MEMB_BNEかつALU_co_pypeが0でないのどちらかなら1、それ以外は0
+    //こいつがassignなんじゃないか？
     else begin //ここにelseないと通常の処理にならないよ！
-    if ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
+    /*if ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
     (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
     (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype == 32'b1 ) ||
@@ -147,7 +140,7 @@ always @(posedge clk, negedge rst) begin
     end else begin
         branch_PC_contral <= 0;
         
-    end
+    end*/
 
     
 
@@ -166,12 +159,6 @@ always @(posedge clk, negedge rst) begin
                     (MemRW_pype2[1]) ? output_ddata : 32'bz;*/
 
     mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'bz;
-
-    keep_mem_data_updated <= 0;
-
-
-
-
 
 end
 end

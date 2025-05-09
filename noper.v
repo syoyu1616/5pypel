@@ -144,7 +144,7 @@ assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1 || hazard_pype2 || hazard_pype3;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
     assign nop_ID  = branch_PC_contral;  // 分岐成立でIDの命令潰す
     assign nop_EX  = branch_PC_contral || hazard_pype1 || hazard_pype2 || hazard_pype3; // memアクセスの際に消えてる可能性あるかも
-    assign nop_Mem = branch_PC_contral;//branch_PC_contral これがないとbranch成立の後ろが書き込んじゃう
+    assign nop_Mem = 1'b0;//branch_PC_contral これがないとbranch成立の後ろが書き込んじゃう
     assign nop_WB  = 1'b0; //branch--で様子見
 
 

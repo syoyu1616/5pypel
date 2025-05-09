@@ -113,8 +113,8 @@ module decode (
 
     always @(posedge clk, negedge rst) begin
 
-            // Pipeline Bubble(addi x0, x0, 0)
     if (nop) begin
+
         //制御線維持
         RegWrite_pype1 <= 0;
         MemtoReg_pype1 <= 2'b0;
@@ -132,16 +132,15 @@ module decode (
         fornop_register1_pype1 <= 5'b0;
         fornop_register2_pype1 <= 5'b0;
 
-
         //PCやALU_controlの維持
-        PC_pype1 <= PC_pype1;
-        PCp4_pype1 <= PCp4_pype1;
+        PC_pype1 <= 32'b0;
+        PCp4_pype1 <= 32'b0;
         Instraction_pype1 <= 32'b0; //これ維持しても意味なくないか？;
-
     end
     
     // Stop(pause) CPU
     else if (keep) begin
+
         //制御線維持
         RegWrite_pype1 <= RegWrite_pype1;
         MemtoReg_pype1 <= MemtoReg_pype1;
@@ -163,6 +162,7 @@ module decode (
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
         Instraction_pype1 <= Instraction_pype1;
+
     end
 
 
