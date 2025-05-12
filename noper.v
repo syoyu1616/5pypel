@@ -125,10 +125,6 @@ end
 assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     { (WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype) } : 2'b00;
 
-
-
-
-
     wire mem_ac_stall; //メモリアクセスによるストールの管理
     //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
     assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
@@ -146,8 +142,6 @@ assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     assign nop_EX  = branch_PC_contral || hazard_pype1 || hazard_pype2 || hazard_pype3; // memアクセスの際に消えてる可能性あるかも
     assign nop_Mem = 1'b0;//branch_PC_contral これがないとbranch成立の後ろが書き込んじゃう
     assign nop_WB  = 1'b0; //branch--で様子見
-
-
 
     endmodule
 

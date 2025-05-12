@@ -211,7 +211,7 @@ module decode (
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= 3'b0;
                 ALU_Src_pype <= 3'b0;
-                ALU_control_pype <= `ALU_co_pype_nou;
+                ALU_control_pype <= `ALU_co_pype_nou;//add 0 0 にするべきかも
 
                 Imm_pype <= imm;
                 for_ALU_c <= 4'b0;
@@ -278,7 +278,7 @@ module decode (
                 WReg_pype <= rd;
             end
 
-            // addi/slti/sltiu/xori/ori/andi/slli/srli/srail
+            // addi/slti/sltiu/xori/ori/andi/slli/srli/srail srailだけ30bit目を参照する
             `OP_ALUI: begin
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_ALUc;
@@ -289,6 +289,10 @@ module decode (
 
                 Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
+                //もしfunct3が101なら最初のビットはinst[30]
+                for_ALU_c <= (funct3 == 3'b101) ?
+                 {Instraction_pype[30], funct3} :
+                 {1'b0, funct3};
                 WReg_pype <= rd;
 
             end

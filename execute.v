@@ -54,7 +54,7 @@ module execute(
 
 
 wire [3:0] ALU_control;
-
+//xに変えても大丈夫層なのに0じゃないとバグる ALU_control_
 assign ALU_control =
     (ALU_control_pype == `ALU_co_pype_normal) ? (
         (for_ALU_c == `INST_ADD)  ? `ALU_OP_ADD  :
@@ -67,22 +67,23 @@ assign ALU_control =
         (for_ALU_c == `INST_SRA)  ? `ALU_OP_SRA  :
         (for_ALU_c == `INST_SLT)  ? `ALU_OP_SLT  :
         (for_ALU_c == `INST_SLTU) ? `ALU_OP_SLTU :
-                                    4'b0000
+                                    4'bx
     ) :
     (ALU_control_pype == `ALU_co_pype_coo) ? (
         (for_ALU_c == `INST_BEQ || for_ALU_c == `INST_BNE)   ? `ALU_OP_SUB  :
         (for_ALU_c == `INST_BLT || for_ALU_c == `INST_BGE)   ? `ALU_OP_SLT  :
         (for_ALU_c == `INST_BLTU || for_ALU_c == `INST_BGEU) ? `ALU_OP_SLTU :
-                                                               4'b0000
+                                                               4'bx
     ) :
     (ALU_control_pype == `ALU_co_pype_j) ? (
         (for_ALU_c == `INST_JAL)  ? `ALU_OP_ADD  :
         (for_ALU_c == `INST_JALR) ? `ALU_OP_ADD  :
-                                    4'b0000
+                                    4'bx
     ) :
     (ALU_control_pype == `ALU_co_pype_load)  ? `ALU_OP_ADD :
     (ALU_control_pype == `ALU_co_pype_store) ? `ALU_OP_ADD :
-                                               4'b0000;
+    (ALU_control_pype == `ALU_co_pype_nou ) ? 4'b0000://とりあえず何もしないことにしました
+                                               4'b0;
     
 
 
@@ -105,7 +106,7 @@ assign branch_PC = branch_PC_wire*/
 
 //cmp_result = (a - b) >>> 31;  // MSBが1ならa < b 2の補数表現比較
 
-//午後からはALUを作る
+
 
 
 always @(posedge clk, negedge rst) begin
@@ -167,17 +168,15 @@ always @(posedge clk, negedge rst) begin
 
             `ALU_OP_SRL: ALU_co_pype <= ALU_data1 >> ALU_data2[4:0];
             `ALU_OP_SRA: ALU_co_pype <= ALU_data1 >>> ALU_data2[4:0];
-            `ALU_OP_SLT: ALU_co_pype <= (ALU_data1 < ALU_data2) ? 32'b1 : 32'b0; //これらとsubを用いてbranchとする
-            `ALU_OP_SLTU: ALU_co_pype <= $unsigned(ALU_data1) < $unsigned(ALU_data2) ? 32'b1 : 32'b0;
+            `ALU_OP_SLT: ALU_co_pype <= ($signed(ALU_data1) < $signed(ALU_data2)) ? 32'b1 : 32'b0; //これらとsubを用いてbranchとする
+            `ALU_OP_SLTU: ALU_co_pype <= ($unsigned(ALU_data1) < $unsigned(ALU_data2)) ? 32'b1 : 32'b0;
+            4'b1111: ALU_co_pype <= ALU_data1 + ALU_data2;//imm + 0で通してるのでこれはいる
             default: ALU_co_pype <= 32'b0;
         endcase
     
     case(MemBranch_pype)
             3'b111: begin
-            //case(for_ALU_c)
-                /*4'b0001: */
             PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
-            //endcase
             end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
     endcase
