@@ -82,7 +82,7 @@ assign ALU_control =
     ) :
     (ALU_control_pype == `ALU_co_pype_load)  ? `ALU_OP_ADD :
     (ALU_control_pype == `ALU_co_pype_store) ? `ALU_OP_ADD :
-    (ALU_control_pype == `ALU_co_pype_nou ) ? 4'b0000://とりあえず何もしないことにしました
+    (ALU_control_pype == `ALU_co_pype_nou ) ? 4'b0000://とりあえず何もしないことにしました 1111にするとなんか無限ループしてる
                                                4'b0;
     
 

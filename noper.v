@@ -83,7 +83,10 @@ module noper(
     assign ID_EX_write_pype2 = (RegWrite_pype2 && (WReg_pype2 != 0)) ? 
     { (WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype) } : 2'b00;
     */
-
+    wire mem_ac_stall; //メモリアクセスによるストールの管理
+    //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
+    assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
+   
     // ハザード信号（reg型に変更）
 reg hazard_pype1;
 reg hazard_pype2;
@@ -124,11 +127,6 @@ end
 
 assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     { (WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype) } : 2'b00;
-
-    wire mem_ac_stall; //メモリアクセスによるストールの管理
-    //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
-    assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
-
 
     assign stall_IF  = 0;
     assign stall_ID  = mem_ac_stall || hazard_pype1 || hazard_pype2 || hazard_pype3;

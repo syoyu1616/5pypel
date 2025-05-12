@@ -45,6 +45,47 @@ module core(
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
 
+//fetch
+    wire branch_PC_early_contral, branch_PC_contral;
+	wire [31:0] branch_PC_early, branch_PC;
+    wire [31:0] Instraction_pype, Instraction_pype1, Instraction_pype2, Instraction_pype3, PC_pype0, PCp4_pype0;
+    wire [4:0] fornop_register1_pype, fornop_register2_pype;
+
+    wire [31:0] read_data1, read_data2, read_data1_pype, read_data2_pype;
+    wire [4:0] read_reg1, read_reg2;
+    wire [31:0] PC_pype1, PCp4_pype1, Imm_pype;
+    wire [3:0] for_ALU_c;
+
+
+//decode   
+    wire RegWrite_pype1;
+    wire [1:0] MemtoReg_pype1, MemRW_pype1;
+    wire [2:0] MemBranch_pype, ALU_control_pype, ALU_Src_pype;
+    wire [6:0] ALU_command_7;
+    wire [4:0] fornop_register1_pype1, fornop_register2_pype1;
+    
+//execute
+    wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype2;
+    wire [4:0] WReg_pype2;
+    wire [2:0] MemBranch_pype2;
+    wire [1:0] MemtoReg_pype2, MemRW_pype2;
+    wire RegWrite_pype2;
+    wire [1:0] dsize_pype2;
+
+//mem
+    wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
+    wire[4:0] WReg_pype3;
+    wire[1:0] MemtoReg_pype3, MemRW_pype3;
+    wire RegWrite_pype3, branch_nop;
+
+    wire [31:0] input_ddata;  // input用の信号
+    wire [31:0] output_ddata; // output用の信号
+
+//regfile
+    wire[4:0] rs1, rs2, write_reg_address;
+    wire[31:0] write_reg_data;
+    wire Regwrite;
+
 
 noper noper_unit (
     .clk(clk),
@@ -71,7 +112,6 @@ noper noper_unit (
     .ID_EX_write_addi_pype2  (ID_EX_write_addi_pype2),
     .ID_EX_write_rw  (ID_EX_write_rw),
 
-
     // 分岐成立
     .branch_PC_contral (branch_PC_contral),
 
@@ -97,12 +137,6 @@ noper noper_unit (
     .nop_WB  (nop_WB)
 );
 
-    //fetch
-    wire branch_PC_early_contral, branch_PC_contral;
-	wire [31:0] branch_PC_early, branch_PC;
-    wire [31:0] Instraction_pype, Instraction_pype1, Instraction_pype2, Instraction_pype3, PC_pype0, PCp4_pype0;
-    wire [4:0] fornop_register1_pype, fornop_register2_pype;
-
     fetch i_fetch(.clk(clk), .rst(rst), .keep(stall_IF), .nop(nop_IF), 
     .branch_PC_early_contral(branch_PC_early_contral), 
     .branch_PC_contral(branch_PC_contral), 
@@ -117,17 +151,6 @@ noper noper_unit (
     .fornop_register1_pype(fornop_register1_pype), 
     .fornop_register2_pype(fornop_register2_pype));
 
-    wire [31:0] read_data1, read_data2, read_data1_pype, read_data2_pype;
-    wire [4:0] read_reg1, read_reg2;
-    wire [31:0] PC_pype1, PCp4_pype1, Imm_pype;
-    wire [3:0] for_ALU_c;
-   
-    wire RegWrite_pype1;
-    wire [1:0] MemtoReg_pype1, MemRW_pype1;
-    wire [2:0] MemBranch_pype, ALU_control_pype, ALU_Src_pype;
-    wire [6:0] ALU_command_7;
-    wire [4:0] fornop_register1_pype1, fornop_register2_pype1;
-    
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
     .PC_pype0(PC_pype0), 
@@ -163,13 +186,6 @@ noper noper_unit (
     .ALU_command_7(ALU_command_7), 
     .Instraction_pype1(Instraction_pype1));
 
-    wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype2;
-    wire [4:0] WReg_pype2;
-    wire [2:0] MemBranch_pype2;
-    wire [1:0] MemtoReg_pype2, MemRW_pype2;
-    wire RegWrite_pype2;
-    wire [1:0] dsize_pype2;
-
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1),
@@ -201,14 +217,6 @@ noper noper_unit (
     .Instraction_pype2(Instraction_pype2),
     .dsize_pype2(dsize_pype2));
 
-
-    wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
-    wire[4:0] WReg_pype3;
-    wire[1:0] MemtoReg_pype3, MemRW_pype3;
-    wire RegWrite_pype3, branch_nop;
-
-    wire [31:0] input_ddata;  // input用の信号
-    wire [31:0] output_ddata; // output用の信号
 
     assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
 
@@ -250,12 +258,6 @@ noper noper_unit (
     // inout信号をinput/output信号に分けて処理
     assign ddata = input_ddata; // キャッシュから見てinputの奴をinoutに入れる
 
-
-    wire[4:0] rs1, rs2, write_reg_address;
-    wire[31:0] write_reg_data;
-    wire Regwrite;
-
-    
 
     writeback i_writeback (.rst(rst), .clk(clk), .keep(stall_WB), .nop(nop_WB),
     .PCp4_pype3(PCp4_pype3),
