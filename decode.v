@@ -22,6 +22,12 @@ module decode (
     output reg [4:0] fornop_register1_pype1,
     output reg [4:0] fornop_register2_pype1,
 
+    //forwading 
+    /*input [31:0] forwarding_ID_EX_data,
+    input [31:0] forwarding_ID_MEM_data,
+    input [1:0] forwarding_ID_EX_pyc,
+    input [1:0] forwarding_ID_MEM_pyc,*/
+
     input [31:0] read_data1,
     input [31:0] read_data2,//registerからのね
 
@@ -65,7 +71,8 @@ module decode (
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [6:0] ALU_command_7,
 
-    output reg [31:0] Instraction_pype1
+    output reg [31:0] Instraction_pype1,
+    output reg [6:0] opcode_pype1
     
 );
 
@@ -112,7 +119,8 @@ module decode (
 
     assign rd = Instraction_pype[11:7];
     assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
-    assign funct7 = Instraction_pype[31:25];
+    assign funct7 = Instraction_pype[31:25];//これいる？csrで必要
+
 
     assign read_reg1 = Instraction_pype[19:15];
     assign read_reg2 = Instraction_pype[24:20]; 
@@ -129,6 +137,7 @@ module decode (
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
         ALU_command_7 <= 7'b0;
+        opcode_pype1 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -156,13 +165,17 @@ module decode (
         ALU_Src_pype <= ALU_Src_pype;
         ALU_control_pype <= ALU_control_pype;
         ALU_command_7 <= ALU_command_7;
+        opcode_pype1 <= opcode_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
         for_ALU_c <= for_ALU_c;
         WReg_pype <= WReg_pype;
-        read_data1_pype <= (Regwrite == 0) && ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1)|| (ID_EX_write_rw[1] == 1)) ? write_reg_data : read_data1_pype;
-        read_data2_pype <= (Regwrite == 0) && ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1)|| (ID_EX_write_rw[0] == 1)) ? write_reg_data : read_data2_pype;
+        read_data1_pype <= (Regwrite == 0) && ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1)|| (ID_EX_write_rw[1] == 1)) ? write_reg_data :
+                            read_data1_pype;
+        read_data2_pype <= (Regwrite == 0) && ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1)|| (ID_EX_write_rw[0] == 1)) ? write_reg_data :
+                            read_data2_pype;
+
         fornop_register1_pype1 <= fornop_register1_pype1;
         fornop_register2_pype1 <= fornop_register2_pype1;
 
@@ -183,6 +196,7 @@ module decode (
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 3'b0;
         ALU_command_7 <= 7'b0;
+        opcode_pype1 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -385,10 +399,15 @@ module decode (
         PCp4_pype1 <= PCp4_pype0;
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
-        read_data1_pype <= (Regwrite == 0) && ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1) || (ID_EX_write_rw[1] == 1)) ? write_reg_data : read_data1;
-        read_data2_pype <= (Regwrite == 0) && ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1) || (ID_EX_write_rw[0] == 1)) ? write_reg_data : read_data2;
+        read_data1_pype <= (Regwrite == 0) && ((ID_EX_write[1] == 1) || (ID_EX_write_addi[1] == 1) || (ID_EX_write_rw[1] == 1)) ? write_reg_data :
+                            read_data1;
+
+        read_data2_pype <= (Regwrite == 0) && ((ID_EX_write[0] == 1) || (ID_EX_write_addi[0] == 1) || (ID_EX_write_rw[0] == 1)) ? write_reg_data :
+                            read_data2;
+        
         fornop_register1_pype1 <= fornop_register1_pype;
         fornop_register2_pype1 <= fornop_register2_pype;
+        opcode_pype1 <= opcode;
 
     end
 end

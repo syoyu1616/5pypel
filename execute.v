@@ -18,6 +18,11 @@ module execute(
 
     //input [1:0] ID_EX_write_addi_pype1,
     //output reg [1:0] ID_EX_write_addi_pype2,
+    //forwarding
+    input [31:0] forwarding_ID_EX_data,
+    input [31:0] forwarding_ID_MEM_data,
+    input [1:0] forwarding_ID_EX_pyc,
+    input [1:0] forwarding_ID_MEM_pyc,
 
     //制御線
     input RegWrite_pype1,
@@ -27,6 +32,7 @@ module execute(
     input [2:0] ALU_control_pype,
     input [2:0] ALU_Src_pype,
     input [6:0] ALU_command_7,
+    input [6:0] opcode_pype1,
 
     output reg [31:0] PCBranch_pype2,
     output reg [31:0] PCp4_pype2,
@@ -41,20 +47,19 @@ module execute(
 
     output reg [31:0] Instraction_pype2,
 
-    output reg [1:0] dsize_pype2
-
-    
-
+    output reg [1:0] dsize_pype2,
+    output reg [6:0] opcode_pype2
 
     //fecheへのバック regかはまだわからん 4/18
-    /*output branch_PC_contral
-    output branch_PC*/
-    //stall関連はまだ
 );
 
+wire [31:0] read_data2_effective =
+    (forwarding_ID_EX_pyc[0])  ? forwarding_ID_EX_data :
+    (forwarding_ID_MEM_pyc[0]) ? forwarding_ID_MEM_data :
+                                 read_data2_pype;
 
 wire [3:0] ALU_control;
-//xに変えても大丈夫層なのに0じゃないとバグる ALU_control_
+//xに変えても大丈夫そうなのに0じゃないとバグる ALU_control_
 assign ALU_control =
     (ALU_control_pype == `ALU_co_pype_normal) ? (
         (for_ALU_c == `INST_ADD)  ? `ALU_OP_ADD  :
@@ -88,12 +93,18 @@ assign ALU_control =
 
 
 
-wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
+wire [31:0] ALU_data1 = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
+                        (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                        (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
                         32'bx;
 
+
+//これだけだとread_data_pype2にデータがいかない
 wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
+                        (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
+                        (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
                         (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
                         32'bx;
 
@@ -125,7 +136,7 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         Instraction_pype2 <= Instraction_pype2;
         dsize_pype2 <= dsize_pype2;
- 
+        opcode_pype2 <= opcode_pype2;
     end else if (nop) begin
 
         ALU_co_pype <= 32'b0;
@@ -139,6 +150,7 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
         dsize_pype2 <= 2'b00;
+        opcode_pype2 <=7'b0;
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -151,7 +163,8 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
-        //ID_EX_write_addi_pype2 <= 32'b0;
+        dsize_pype2 <= 2'b00;
+        opcode_pype2 <=7'b0;
     end
 
 
@@ -185,13 +198,13 @@ always @(posedge clk, negedge rst) begin
     case(ALU_control_pype)
         `ALU_co_pype_store: begin
             case(for_ALU_c)
-            `INST_Sb: read_data2_pype2 <= {24'b0, read_data2_pype[7:0]}; //1バイト
-            `INST_Sh: read_data2_pype2 <= {18'b0, read_data2_pype[15:0]}; //2バイト
-            default: read_data2_pype2 <= read_data2_pype; //これないとswが働かない
+            `INST_Sb: read_data2_pype2 <= {24'b0, read_data2_effective[7:0]}; //1バイト
+            `INST_Sh: read_data2_pype2 <= {18'b0, read_data2_effective[15:0]}; //2バイト
+            default: read_data2_pype2 <= read_data2_effective; //これないとswが働かない
         endcase
         end
     
-        default: read_data2_pype2 <= read_data2_pype;
+        default: read_data2_pype2 <= read_data2_effective;
 
     endcase
 
@@ -214,6 +227,7 @@ endcase
     MemBranch_pype2 <= MemBranch_pype;
     Instraction_pype2 <= Instraction_pype1;
     RegWrite_pype2 <= RegWrite_pype1;
+    opcode_pype2 <= opcode_pype1;
 
     //ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype1;
 end
