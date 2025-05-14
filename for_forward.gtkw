@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Tue May 13 07:45:44 2025
+[*] Wed May 14 07:29:11 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Tue May 13 06:16:12 2025"
-[dumpfile_size] 2255926
+[dumpfile_mtime] "Wed May 14 07:17:37 2025"
+[dumpfile_size] 854963
 [savefile] "/home/seigo/modules/programs/5pypel/for_forward.gtkw"
-[timestart] 13344190
+[timestart] 12067700
 [size] 1000 600
 [pos] -1 -1
-*-14.000000 13360000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.000000 12100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
@@ -27,6 +27,7 @@ top_test.i_top.i_core.i_execute.ALU_co_pype[31:0]
 top_test.i_top.i_core.i_execute.read_data2_pype2[31:0]
 @28
 top_test.i_top.i_core.i_fetch.branch_PC_contral
+top_test.i_top.i_core.i_mem_access.MemBranch_pype2[2:0]
 @22
 top_test.i_top.i_dcache.caddr[31:0]
 @c00022
@@ -103,21 +104,21 @@ top_test.i_top.i_dcache.cdata[31:0]
 (31)top_test.i_top.i_dcache.cdata[31:0]
 @1401200
 -group_end
+@22
+top_test.i_top.i_dcache.state[3:0]
 @28
 top_test.i_top.i_core.i_mem_access.dreq
 top_test.i_top.i_core.i_mem_access.dwrite
 @22
 top_test.i_top.i_core.i_mem_access.mem_data_pype[31:0]
-@23
 top_test.i_top.i_core.i_regfile.rs1[4:0]
-@22
 top_test.i_top.i_core.i_regfile.out1[31:0]
 top_test.i_top.i_core.i_decode.read_data1_pype[31:0]
 @28
-top_test.i_top.i_core.i_decode.ID_EX_write[1:0]
-top_test.i_top.i_core.i_decode.ID_EX_write_addi[1:0]
 top_test.i_top.i_core.i_decode.ID_EX_write_rw[1:0]
 @22
 top_test.i_top.i_core.i_decode.write_reg_data[31:0]
+@29
+top_test.i_top.i_core.noper_unit.hazard_pype1
 [pattern_trace] 1
 [pattern_trace] 0

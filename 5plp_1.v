@@ -45,8 +45,8 @@ module core(
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
     wire [6:0] opcode_pype1,opcode_pype2;
-    wire [31:0] forwarding_ID_EX_data, forwarding_ID_MEM_data;
-    wire [1:0] forwarding_ID_EX_pyc, forwarding_ID_MEM_pyc;
+    wire [31:0] forwarding_ID_EX_data, forwarding_ID_MEM_data, forwarding_load_data;
+    wire [1:0] forwarding_ID_EX_pyc, forwarding_ID_MEM_pyc, forwarding_nostall_load_pyc, forwarding_stall_load_pyc;
 
 //fetch
     wire branch_PC_early_contral, branch_PC_contral;
@@ -111,8 +111,6 @@ noper noper_unit (
     .Regwrite    (Regwrite),
     .write_reg_address  (write_reg_address),
 
-    .ID_EX_write_pype3  (ID_EX_write_pype3),
-    .ID_EX_write_addi_pype2  (ID_EX_write_addi_pype2),
     .ID_EX_write_rw  (ID_EX_write_rw),
 
     // 分岐成立
@@ -123,11 +121,15 @@ noper noper_unit (
     .opcode_pype2(opcode_pype2),
     .ALU_co_pype(ALU_co_pype),
     .ALU_co_pype3(ALU_co_pype3),
+    .mem_data_pype(mem_data_pype),
 
     .forwarding_ID_EX_data(forwarding_ID_EX_data),
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
+    .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
     .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
+    .forwarding_nostall_load_pyc(forwarding_nostall_load_pyc),
+    .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
 
     //メモリアクセスに関するストール
     .iready_n(iready_n),
@@ -176,8 +178,8 @@ noper noper_unit (
     .read_data2_pype(read_data2_pype),
     .read_reg1(read_reg1), 
     .read_reg2(read_reg2),
-    .ID_EX_write(ID_EX_write), 
-    .ID_EX_write_addi (ID_EX_write_addi),
+    //.ID_EX_write(ID_EX_write), 
+    //.ID_EX_write_addi (ID_EX_write_addi),
     .ID_EX_write_rw (ID_EX_write_rw),
     .write_reg_data(write_reg_data),
     .fornop_register1_pype(fornop_register1_pype),
@@ -217,8 +219,11 @@ noper noper_unit (
     .opcode_pype1(opcode_pype1),
     .forwarding_ID_EX_data(forwarding_ID_EX_data),
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
+    .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
     .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
+    .forwarding_nostall_load_pyc(forwarding_nostall_load_pyc),
+    .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
     //.ID_EX_write_addi_pype1(ID_EX_write_addi_pype1),
 
     //.ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),

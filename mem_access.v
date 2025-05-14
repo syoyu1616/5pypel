@@ -88,8 +88,7 @@ always @(posedge clk, negedge rst) begin
         ALU_co_pype3 <= ALU_co_pype3;
         PCp4_pype3 <= PCp4_pype3;
         Instraction_pype3 <= Instraction_pype3;
-        ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype3;
-        mem_data_pype <= /*(MemRW_pype2[1]) ? output_ddata :*/ mem_data_pype;
+        mem_data_pype <=  mem_data_pype;
 
     end
     
@@ -100,7 +99,6 @@ always @(posedge clk, negedge rst) begin
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
         Instraction_pype3 <= 32'b0;
-        ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
     end
 
@@ -112,43 +110,20 @@ always @(posedge clk, negedge rst) begin
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        /*branch_PC <= 32'b0;
-        branch_PC_contral <= 1'b0;*/
         Instraction_pype3 <= 32'b0;
-        ID_EX_write_addi_pype3 <= 0;
         mem_data_pype <= 32'b0;
     end
 
-    //こいつがassignなんじゃないか？
+
     else begin //ここにelseないと通常の処理にならないよ！
-    /*if ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
-    (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
-    (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype == 32'b0) ||
-    (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype == 32'b1 ) ||
-    (MemBranch_pype2 == `MEMB_JAL)) begin
-        branch_PC <= PCBranch_pype2;
-        branch_PC_contral <= 1;
-        // これで次の命令をnopに
-    end else if (MemBranch_pype2 == `MEMB_JALR) begin
-        branch_PC <= ALU_co_pype;
-        branch_PC_contral <= 1;
-    end else begin
-        branch_PC_contral <= 0;
-        
-    end*/
-
-    
-
 
     //横流し
-    PCp4_pype3 <= PCp4_pype2;
-    WReg_pype3 <= WReg_pype2;
     RegWrite_pype3 <= RegWrite_pype2;
-    ALU_co_pype3 <= ALU_co_pype;
-
-    Instraction_pype3 <= Instraction_pype2;
     MemtoReg_pype3 <= MemtoReg_pype2;
-    ID_EX_write_addi_pype3 <= ID_EX_write_addi_pype2;
+    WReg_pype3 <= WReg_pype2;
+    ALU_co_pype3 <= ALU_co_pype;
+    PCp4_pype3 <= PCp4_pype2;
+    Instraction_pype3 <= Instraction_pype2;
     mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'b0;
 
 end

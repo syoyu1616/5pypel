@@ -21,8 +21,11 @@ module execute(
     //forwarding
     input [31:0] forwarding_ID_EX_data,
     input [31:0] forwarding_ID_MEM_data,
+    input [31:0] forwarding_load_data,
     input [1:0] forwarding_ID_EX_pyc,
     input [1:0] forwarding_ID_MEM_pyc,
+    input [1:0] forwarding_nostall_load_pyc,
+    input [1:0] forwarding_stall_load_pyc,
 
     //制御線
     input RegWrite_pype1,
@@ -53,10 +56,18 @@ module execute(
     //fecheへのバック regかはまだわからん 4/18
 );
 
+wire [31:0] read_data1_effetive =
+    (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data :
+    (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data :
+    ((forwarding_nostall_load_pyc[1] == 1) || (forwarding_stall_load_pyc[1] == 1)) ? forwarding_load_data:
+                                 read_data1_pype;
+
 wire [31:0] read_data2_effective =
-    (forwarding_ID_EX_pyc[0])  ? forwarding_ID_EX_data :
-    (forwarding_ID_MEM_pyc[0]) ? forwarding_ID_MEM_data :
+    (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data :
+    (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data :
+    ((forwarding_nostall_load_pyc[0] == 1) || (forwarding_stall_load_pyc[0] == 1)) ? forwarding_load_data:
                                  read_data2_pype;
+
 
 wire [3:0] ALU_control;
 //xに変えても大丈夫そうなのに0じゃないとバグる ALU_control_
@@ -93,11 +104,12 @@ assign ALU_control =
 
 
 
-wire [31:0] ALU_data1 = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
-                        (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
-                        (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
-                        (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
+wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
+                        (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
+                        (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                        ((forwarding_nostall_load_pyc[1] == 1) || (forwarding_stall_load_pyc[1] == 1)) ? forwarding_load_data:
+                        (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
                         32'bx;
 
 
@@ -105,19 +117,9 @@ wire [31:0] ALU_data1 = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
 wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
                         (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
+                        ((forwarding_nostall_load_pyc[0] == 1) || (forwarding_stall_load_pyc[0] == 1)) ? forwarding_load_data:
                         (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
                         32'bx;
-
-
-/*wire branch_PC_wire
-branch_PC_wire = PC_pype1 + Imm_pype;
-JALRは先んじて行う
-if (MemBranch_pype = 3'b100) branch_PC_wire = (read_data1_pype + Imm_pype) & 32'hffff_fffe;
-assign branch_PC = branch_PC_wire*/
-
-//cmp_result = (a - b) >>> 31;  // MSBが1ならa < b 2の補数表現比較
-
-
 
 
 always @(posedge clk, negedge rst) begin
@@ -172,7 +174,6 @@ always @(posedge clk, negedge rst) begin
     case(ALU_control)
             `ALU_OP_ADD: ALU_co_pype <= ALU_data1 + ALU_data2;
             `ALU_OP_SUB: ALU_co_pype <= ALU_data1 - ALU_data2;
-            //`ALU_OP_SUB: ALU_co_pype <= $signed(ALU_data1) - $signed(ALU_data2);
 
             `ALU_OP_AND: ALU_co_pype <= ALU_data1 & ALU_data2;
             `ALU_OP_OR:  ALU_co_pype <= ALU_data1 | ALU_data2;
@@ -189,7 +190,7 @@ always @(posedge clk, negedge rst) begin
     
     case(MemBranch_pype)
             3'b111: begin
-            PCBranch_pype2 <= (read_data1_pype + $signed(Imm_pype)) & 32'hffff_fffe;
+            PCBranch_pype2 <= (read_data1_effetive + $signed(Imm_pype)) & 32'hffff_fffe;
             end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
     endcase
@@ -199,7 +200,7 @@ always @(posedge clk, negedge rst) begin
         `ALU_co_pype_store: begin
             case(for_ALU_c)
             `INST_Sb: read_data2_pype2 <= {24'b0, read_data2_effective[7:0]}; //1バイト
-            `INST_Sh: read_data2_pype2 <= {18'b0, read_data2_effective[15:0]}; //2バイト
+            `INST_Sh: read_data2_pype2 <= {16'b0, read_data2_effective[15:0]}; //2バイト
             default: read_data2_pype2 <= read_data2_effective; //これないとswが働かない
         endcase
         end
@@ -229,7 +230,6 @@ endcase
     RegWrite_pype2 <= RegWrite_pype1;
     opcode_pype2 <= opcode_pype1;
 
-    //ID_EX_write_addi_pype2 <= ID_EX_write_addi_pype1;
 end
 end
 endmodule
