@@ -21,10 +21,11 @@ module execute(
     //forwarding
     input [31:0] forwarding_ID_EX_data,
     input [31:0] forwarding_ID_MEM_data,
+    input [31:0] forwarding_ID_MEM_hazard_data,
     input [31:0] forwarding_load_data,
     input [1:0] forwarding_ID_EX_pyc,
     input [1:0] forwarding_ID_MEM_pyc,
-    input [1:0] forwarding_nostall_load_pyc,
+    input [1:0] forwarding_ID_MEM_hazard_pyc,
     input [1:0] forwarding_stall_load_pyc,
 
     //制御線
@@ -59,13 +60,15 @@ module execute(
 wire [31:0] read_data1_effetive =
     (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data :
     (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data :
-    ((forwarding_nostall_load_pyc[1] == 1) || (forwarding_stall_load_pyc[1] == 1)) ? forwarding_load_data:
+    (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
+    (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
                                  read_data1_pype;
 
 wire [31:0] read_data2_effective =
     (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data :
     (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data :
-    ((forwarding_nostall_load_pyc[0] == 1) || (forwarding_stall_load_pyc[0] == 1)) ? forwarding_load_data:
+    (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
+    (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                                  read_data2_pype;
 
 
@@ -108,7 +111,8 @@ wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
                         (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
                         (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
-                        ((forwarding_nostall_load_pyc[1] == 1) || (forwarding_stall_load_pyc[1] == 1)) ? forwarding_load_data:
+                        (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
+                        (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
                         (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
                         32'bx;
 
@@ -117,7 +121,8 @@ wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
 wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
                         (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
-                        ((forwarding_nostall_load_pyc[0] == 1) || (forwarding_stall_load_pyc[0] == 1)) ? forwarding_load_data:
+                        (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
+                        (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                         (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
                         32'bx;
 
@@ -141,7 +146,7 @@ always @(posedge clk, negedge rst) begin
         opcode_pype2 <= opcode_pype2;
     end else if (nop) begin
 
-        ALU_co_pype <= 32'b0;
+        /*ALU_co_pype <= 32'b0;*/
         PCBranch_pype2 <= 32'b0;
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;

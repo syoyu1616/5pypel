@@ -1,5 +1,6 @@
 /a.out
-
+/mem_dump.dat
 /icache_log.dat
 /mem_log.dat
 /wave.vcd
+/icache_dump.dat

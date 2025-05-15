@@ -22,8 +22,8 @@ module mem_access(
     //input [1:0] ID_EX_write_pype2,
     //output reg [1:0] ID_EX_write_pype3,
 
-    input [1:0] ID_EX_write_addi_pype2,
-    output reg [1:0] ID_EX_write_addi_pype3,
+    input [1:0] forwarding_stall_load_pyc_pype2,
+    output reg [1:0] forwarding_stall_load_pyc_pype3,
 
     input [1:0] dsize_pype2,
 
@@ -89,6 +89,7 @@ always @(posedge clk, negedge rst) begin
         PCp4_pype3 <= PCp4_pype3;
         Instraction_pype3 <= Instraction_pype3;
         mem_data_pype <=  mem_data_pype;
+        forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype3;
 
     end
     
@@ -100,6 +101,7 @@ always @(posedge clk, negedge rst) begin
         PCp4_pype3 <= 32'b0;
         Instraction_pype3 <= 32'b0;
         mem_data_pype <= 32'b0;
+        forwarding_stall_load_pyc_pype3 <= 2'b0;
     end
 
 
@@ -112,6 +114,7 @@ always @(posedge clk, negedge rst) begin
         PCp4_pype3 <= 32'b0;
         Instraction_pype3 <= 32'b0;
         mem_data_pype <= 32'b0;
+        forwarding_stall_load_pyc_pype3 <= 2'b0;
     end
 
 
@@ -125,6 +128,8 @@ always @(posedge clk, negedge rst) begin
     PCp4_pype3 <= PCp4_pype2;
     Instraction_pype3 <= Instraction_pype2;
     mem_data_pype <= (MemRW_pype2[1]) ? output_ddata: 32'b0;
+    forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype2;
+
 
 end
 end

@@ -45,24 +45,28 @@ module noper(
     input [1:0] MemRW_pype1,
     input [1:0] MemRW_pype2,
 
-    output reg [1:0] forwarding_nostall_load_pyc,
-    output reg [1:0] forwarding_stall_load_pyc,
     output wire [1:0] ID_EX_write_rw,
 
 //forwarding関連
 
     input [31:0] ALU_co_pype,
     input [31:0] ALU_co_pype3,
+    input [31:0] write_reg_data,
     input [31:0] mem_data_pype,
     input [6:0] opcode_pype1,
     input [6:0] opcode_pype2,
+    input [6:0] opcode_pype3,
 
     output  [31:0] forwarding_ID_EX_data,
     output  [31:0] forwarding_ID_MEM_data,
+    output reg [31:0] forwarding_ID_MEM_hazard_data,
     output  [31:0] forwarding_load_data,
+
 
     output reg [1:0] forwarding_ID_EX_pyc, //pype control
     output reg [1:0] forwarding_ID_MEM_pyc,
+    output reg [1:0] forwarding_ID_MEM_hazard_pyc,
+    output reg [1:0] forwarding_stall_load_pyc_pype2,
    
     output wire stall_IF,
     output wire stall_ID,
@@ -82,7 +86,7 @@ module noper(
     assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
 
     assign forwarding_ID_EX_data = ALU_co_pype;
-    assign forwarding_ID_MEM_data = ALU_co_pype3; 
+    assign forwarding_ID_MEM_data = write_reg_data; //同じ名前でregにして使うかも
     assign forwarding_load_data = mem_data_pype;
    
     // ハザード信号（reg型に変更）
@@ -91,10 +95,9 @@ module noper(
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             hazard_pype1 <= 0;
-            forwarding_nostall_load_pyc <= 2'b00;
-            forwarding_stall_load_pyc <= 2'b00;
             forwarding_ID_EX_pyc <= 2'b0;
             forwarding_ID_MEM_pyc <= 2'b0;
+            forwarding_stall_load_pyc_pype2 <= 2'b00;
 
 end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あり
         //hazard発生は前側の命令がloadの時だけ（opcode_pype == 7'b0000011）
@@ -104,34 +107,31 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
                         ((WReg_pype == fornop_register1_pype) || (WReg_pype == fornop_register2_pype)) && 
                         (opcode_pype1 == 7'b0000011);
 
-        /*hazard_pype2 <= RegWrite_pype2 && (WReg_pype2 != 0) &&
-                        ((WReg_pype2 == fornop_register1_pype) || (WReg_pype2 == fornop_register2_pype))&&
-                        (opcode_pype2 == 7'b0000011);
 
-        hazard_pype3 <= RegWrite_pype2 && (WReg_pype2 != 0) &&
-                        ((WReg_pype2 == fornop_register1_pype1) || (WReg_pype2 == fornop_register2_pype1))&&
-                        (opcode_pype2 == 7'b0000011);*/
-
-
-        if ((RegWrite_pype1 && (WReg_pype != 0)) && (opcode_pype1 != 7'b0000011) && ) 
+        if ((RegWrite_pype1 && (WReg_pype != 0)) && (opcode_pype1 != 7'b0000011)) 
             forwarding_ID_EX_pyc <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
             forwarding_ID_EX_pyc <= 2'b0;
 
-        if ((RegWrite_pype2 && (WReg_pype2 != 0)) && (opcode_pype2 != 7'b0000011))
+        if (RegWrite_pype2 && (WReg_pype2 != 0)) //二つ離れてたら大丈夫！！
             forwarding_ID_MEM_pyc <= {(WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype)};
         else
             forwarding_ID_MEM_pyc <= 2'b0;
 
-        if ((RegWrite_pype2 && (WReg_pype2 != 0)) && (opcode_pype1 == 7'b0000011)) 
-            forwarding_nostall_load_pyc <= {(WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype)};
-        else
-            forwarding_nostall_load_pyc <= 2'b0;
 
-        if ((RegWrite_pype2 && (WReg_pype2 != 0)) && (opcode_pype2 == 7'b0000011))
-            forwarding_stall_load_pyc <= {(WReg_pype2 == fornop_register1_pype1), (WReg_pype2 == fornop_register2_pype1)};
+        if ((RegWrite_pype1 && (WReg_pype != 0)) && (opcode_pype1 == 7'b0000011)) 
+            forwarding_stall_load_pyc_pype2 <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
-            forwarding_stall_load_pyc <= 2'b0;
+            forwarding_stall_load_pyc_pype2 <= 2'b0;
+        
+        if ((hazard_pype1) && (forwarding_ID_MEM_pyc != 2'b00)) begin
+            forwarding_ID_MEM_hazard_pyc <= forwarding_ID_MEM_pyc;
+            forwarding_ID_MEM_hazard_data <= write_reg_data;//これ遅れ取るかも
+
+        end else begin
+            forwarding_ID_MEM_hazard_pyc <= 2'b0;
+            forwarding_ID_MEM_hazard_data <= 32'b0;
+        end
     end
 end
 
@@ -139,6 +139,7 @@ end
 
 assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     {(WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype)} : 2'b00;
+
 
     assign stall_IF  = 0;
     assign stall_ID  = mem_ac_stall || hazard_pype1;

@@ -44,9 +44,9 @@ module core(
     wire [1:0] ID_EX_write_addi_pype1, ID_EX_write_addi_pype2, ID_EX_write_addi_pype3, ID_EX_write_addi, ID_EX_write_rw;
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
-    wire [6:0] opcode_pype1,opcode_pype2;
-    wire [31:0] forwarding_ID_EX_data, forwarding_ID_MEM_data, forwarding_load_data;
-    wire [1:0] forwarding_ID_EX_pyc, forwarding_ID_MEM_pyc, forwarding_nostall_load_pyc, forwarding_stall_load_pyc;
+    wire [6:0] opcode_pype1,opcode_pype2,opcode_pype3;
+    wire [31:0] forwarding_ID_EX_data, forwarding_ID_MEM_data, forwarding_ID_MEM_hazard_data, forwarding_load_data;
+    wire [1:0] forwarding_ID_EX_pyc, forwarding_ID_MEM_pyc, forwarding_ID_MEM_hazard_pyc, forwarding_stall_load_pyc, forwarding_stall_load_pyc_pype2, forwarding_stall_load_pyc_pype3;
 
 //fetch
     wire branch_PC_early_contral, branch_PC_contral;
@@ -119,17 +119,20 @@ noper noper_unit (
     //forwarding
     .opcode_pype1(opcode_pype1),
     .opcode_pype2(opcode_pype2),
+    .opcode_pype3(opcode_pype3),
     .ALU_co_pype(ALU_co_pype),
     .ALU_co_pype3(ALU_co_pype3),
+    .write_reg_data(write_reg_data),
     .mem_data_pype(mem_data_pype),
 
     .forwarding_ID_EX_data(forwarding_ID_EX_data),
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
+    .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
     .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
     .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
-    .forwarding_nostall_load_pyc(forwarding_nostall_load_pyc),
-    .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
+    .forwarding_ID_MEM_hazard_pyc(forwarding_ID_MEM_hazard_pyc),
+    .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
 
     //メモリアクセスに関するストール
     .iready_n(iready_n),
@@ -178,17 +181,12 @@ noper noper_unit (
     .read_data2_pype(read_data2_pype),
     .read_reg1(read_reg1), 
     .read_reg2(read_reg2),
-    //.ID_EX_write(ID_EX_write), 
-    //.ID_EX_write_addi (ID_EX_write_addi),
     .ID_EX_write_rw (ID_EX_write_rw),
+    .forwarding_ID_MEM_pyc (forwarding_ID_MEM_pyc),
     .write_reg_data(write_reg_data),
     .fornop_register1_pype(fornop_register1_pype),
     .fornop_register2_pype(fornop_register2_pype),
     .Regwrite(Regwrite),
-    /*.forwarding_ID_EX_data(forwarding_ID_EX_data),
-    .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
-    .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
-    .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),*/
 
     .fornop_register1_pype1(fornop_register1_pype1),
     .fornop_register2_pype1(fornop_register2_pype1),
@@ -219,14 +217,14 @@ noper noper_unit (
     .opcode_pype1(opcode_pype1),
     .forwarding_ID_EX_data(forwarding_ID_EX_data),
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
+    .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
     .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
     .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
-    .forwarding_nostall_load_pyc(forwarding_nostall_load_pyc),
+    .forwarding_ID_MEM_hazard_pyc(forwarding_ID_MEM_hazard_pyc),
     .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
-    //.ID_EX_write_addi_pype1(ID_EX_write_addi_pype1),
+    
 
-    //.ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
     .opcode_pype2(opcode_pype2),
     .RegWrite_pype1(RegWrite_pype1), 
     .MemtoReg_pype1(MemtoReg_pype1), 
@@ -261,14 +259,12 @@ noper noper_unit (
     .read_data2_pype2(read_data2_pype2),
     .WReg_pype2 (WReg_pype2), 
     .Instraction_pype2(Instraction_pype2), 
-    //.ID_EX_write_pype2(ID_EX_write_pype2),
-    .ID_EX_write_addi_pype2(ID_EX_write_addi_pype2),
     .input_ddata(input_ddata),
     .dsize_pype2(dsize_pype2),
+    .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
 
+    .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),
-    //.ID_EX_write_pype3(ID_EX_write_pype3),
-    .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
     .daddr (daddr), 
     .dreq(dreq), 
     .dwrite(dwrite), 
@@ -298,8 +294,9 @@ noper noper_unit (
     .MemtoReg_pype3(MemtoReg_pype3),
     .ID_EX_write_pype3(ID_EX_write_pype3),
     .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
+    .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
 
-    
+    .forwarding_stall_load_pyc  (forwarding_stall_load_pyc),
     .write_reg_data    (write_reg_data),
     .Regwrite          (Regwrite),
     .write_reg_address (write_reg_address),
