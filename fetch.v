@@ -27,7 +27,7 @@ module fetch (
 );
 
 //assign Instraction_pype = idata;
-assign Instraction_pype = nop ? 32'b0000000000000000000000000000000:idata;//is_nop周りはまだ未変更
+assign Instraction_pype = nop ? 32'b0000000000000000000000000001001:idata;//is_nop周りはまだ未変更
 assign fornop_register1_pype = Instraction_pype[19:15];
 assign fornop_register2_pype = Instraction_pype[24:20];
 

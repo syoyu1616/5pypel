@@ -33,10 +33,11 @@ module execute(
     input [1:0] MemtoReg_pype1,
     input [1:0] MemRW_pype1,
     input [2:0] MemBranch_pype,
-    input [2:0] ALU_control_pype,
+    input [3:0] ALU_control_pype,
     input [2:0] ALU_Src_pype,
     input [6:0] ALU_command_7,
     input [6:0] opcode_pype1,
+    input [2:0] funct3_pype1,
 
     output reg [31:0] PCBranch_pype2,
     output reg [31:0] PCp4_pype2,
@@ -52,10 +53,32 @@ module execute(
     output reg [31:0] Instraction_pype2,
 
     output reg [1:0] dsize_pype2,
-    output reg [6:0] opcode_pype2
+    output reg [6:0] opcode_pype2,
+    output reg [2:0] funct3_pype2,
+    output reg [31:0] ALU_data1_pype2,
+    output reg [31:0] ALU_data2_pype2
 
-    //fecheへのバック regかはまだわからん 4/18
 );
+
+    //alu: ALU
+    function signed [31:0] alu(
+        input signed [31:0] a, 
+        input signed [31:0] b,
+        input [3:0] ctrl
+    );
+        case(ctrl)
+            `ALU_ADD: alu = a + b;
+            `ALU_SUB: alu = a - b;
+            `ALU_AND: alu = a & b;
+            `ALU_OR:  alu = a | b;
+            `ALU_XOR: alu = a ^ b;
+            `ALU_SLL: alu = a << b[4:0];
+            `ALU_SRL: alu = a >> b[4:0];
+            `ALU_SRA: alu = a >>> b[4:0];
+            `ALU_SLT: alu = (a < b) ? 32'b1 : 32'b0;
+            `ALU_SLTU: alu = $unsigned(a) < $unsigned(b) ? 32'b1 : 32'b0;
+        endcase
+    endfunction
 
 wire [31:0] read_data1_effetive =
     (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data :
@@ -72,7 +95,7 @@ wire [31:0] read_data2_effective =
                                  read_data2_pype;
 
 
-wire [3:0] ALU_control;
+/*wire [3:0] ALU_control;
 //xに変えても大丈夫そうなのに0じゃないとバグる ALU_control_
 assign ALU_control =
     (ALU_control_pype == `ALU_co_pype_normal) ? (
@@ -102,7 +125,7 @@ assign ALU_control =
     (ALU_control_pype == `ALU_co_pype_load)  ? `ALU_OP_ADD :
     (ALU_control_pype == `ALU_co_pype_store) ? `ALU_OP_ADD :
     (ALU_control_pype == `ALU_co_pype_nou ) ? 4'b0000://とりあえず何もしないことにしました 1111にするとなんか無限ループしてる
-                                               4'b0;
+                                               4'b0;*/
     
 
 
@@ -144,6 +167,10 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype2 <= Instraction_pype2;
         dsize_pype2 <= dsize_pype2;
         opcode_pype2 <= opcode_pype2;
+        funct3_pype2 <= funct3_pype2;
+        ALU_data1_pype2 <= ALU_data1_pype2;
+        ALU_data2_pype2 <= ALU_data2_pype2;
+
     end else if (nop) begin
 
         /*ALU_co_pype <= 32'b0;*/
@@ -157,7 +184,10 @@ always @(posedge clk, negedge rst) begin
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
         dsize_pype2 <= 2'b00;
-        opcode_pype2 <=7'b0;
+        opcode_pype2 <= 7'b0;
+        funct3_pype2 <= 3'b0;
+        ALU_data1_pype2 <= 32'b0;
+        ALU_data2_pype2 <= 32'b0;
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -172,11 +202,14 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype2 <= 32'b0;
         dsize_pype2 <= 2'b00;
         opcode_pype2 <=7'b0;
+        funct3_pype2 <= 3'b0;
+        ALU_data1_pype2 <= 32'b0;
+        ALU_data2_pype2 <= 32'b0;
     end
 
 
     else begin
-    case(ALU_control)
+    /*case(ALU_control)
             `ALU_OP_ADD: ALU_co_pype <= ALU_data1 + ALU_data2;
             `ALU_OP_SUB: ALU_co_pype <= ALU_data1 - ALU_data2;
 
@@ -191,31 +224,31 @@ always @(posedge clk, negedge rst) begin
             `ALU_OP_SLTU: ALU_co_pype <= ($unsigned(ALU_data1) < $unsigned(ALU_data2)) ? 32'b1 : 32'b0;
             4'b1111: ALU_co_pype <= ALU_data1 + ALU_data2;//imm + 0で通してるのでこれはいる
             default: ALU_co_pype <= 32'b0;
-        endcase
+        endcase*/
+
+    ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
     
-    case(MemBranch_pype)
-            3'b111: begin
+    case(opcode_pype1)
+            7'b1100111: begin
             PCBranch_pype2 <= (read_data1_effetive + $signed(Imm_pype)) & 32'hffff_fffe;
             end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
     endcase
 
 
-    case(ALU_control_pype)
-        `ALU_co_pype_store: begin
+    case(opcode_pype1)
+        7'b0100011: begin
             case(for_ALU_c)
             `INST_Sb: read_data2_pype2 <= {24'b0, read_data2_effective[7:0]}; //1バイト
             `INST_Sh: read_data2_pype2 <= {16'b0, read_data2_effective[15:0]}; //2バイト
             default: read_data2_pype2 <= read_data2_effective; //これないとswが働かない
         endcase
         end
-    
         default: read_data2_pype2 <= read_data2_effective;
-
     endcase
 
-case (ALU_control_pype)
-    `ALU_co_pype_load: begin
+case (opcode_pype1)
+    7'b0000011: begin
         case (for_ALU_c)
             4'b0000, 4'b0100: dsize_pype2 <= 2'b00; // 1バイト
             4'b0001, 4'b0101: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
@@ -234,10 +267,14 @@ endcase
     Instraction_pype2 <= Instraction_pype1;
     RegWrite_pype2 <= RegWrite_pype1;
     opcode_pype2 <= opcode_pype1;
+    funct3_pype2 <= funct3_pype1;
+    ALU_data1_pype2 <= ALU_data1;
+    ALU_data2_pype2 <= ALU_data2;
 
 end
 end
 endmodule
+
 
 
 //reg [1:0] branch, //分岐の成立を教える ＝ 00, ￢＝ 01 未満 10 以上 11 Membranchと一致してたら分岐や！(ALUから出るので分岐)

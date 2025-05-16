@@ -28,8 +28,11 @@ module writeback(
 );
 
 assign write_reg_data = 
-        MemtoReg_pype3 == `write_reg_PCp4 ? PCp4_pype3 : //jalrのシングルラインの場合　パイプラインの場合mucを012まで増やすことを考慮
-        MemtoReg_pype3 == `write_reg_memd ? mem_data_pype : ALU_co_pype3;
+    (MemtoReg_pype3 == `write_reg_PCp4) ? PCp4_pype3 :
+    (MemtoReg_pype3 == `write_reg_memd) ? mem_data_pype :
+    (MemtoReg_pype3 == `write_reg_ALUc) ? ALU_co_pype3 :
+    32'bx;  // デフォルト（エラー時はxにするか、0にしてもOK）
+
 
 assign Regwrite = ~RegWrite_pype3;
 

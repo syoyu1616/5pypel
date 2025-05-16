@@ -135,7 +135,6 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
     end
 end
 
-//wire [1:0] ID_EX_write_rw;
 
 assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     {(WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype)} : 2'b00;
@@ -146,6 +145,7 @@ assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
     assign stall_EX  = mem_ac_stall;
     assign stall_Mem = mem_ac_stall;
     assign stall_WB  = mem_ac_stall;
+
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
     assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1;//1'b0; // IFには基本nop入れない（IFは止めるだけ）

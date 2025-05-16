@@ -37,7 +37,7 @@ module core(
 	integer i;
     //こいつを設定する必要あり
     //assign dsize = 2'b10;
-    
+    assign iack_n = 1'b1;
   
     wire [4:0] WReg_pype;
     wire [1:0] ID_EX_write_pype2, ID_EX_write_pype3, ID_EX_write;
@@ -63,9 +63,11 @@ module core(
 //decode   
     wire RegWrite_pype1;
     wire [1:0] MemtoReg_pype1, MemRW_pype1;
-    wire [2:0] MemBranch_pype, ALU_control_pype, ALU_Src_pype;
+    wire [2:0] MemBranch_pype, ALU_Src_pype;
     wire [6:0] ALU_command_7;
     wire [4:0] fornop_register1_pype1, fornop_register2_pype1;
+    wire [2:0] funct3_pype1, funct3_pype2;
+    wire [3:0] ALU_control_pype;
     
 //execute
     wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype2;
@@ -74,6 +76,7 @@ module core(
     wire [1:0] MemtoReg_pype2, MemRW_pype2;
     wire RegWrite_pype2;
     wire [1:0] dsize_pype2;
+    wire [31:0] ALU_data1_pype2, ALU_data2_pype2;
 
 //mem
     wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
@@ -203,7 +206,8 @@ noper noper_unit (
     .ALU_Src_pype(ALU_Src_pype),
     .ALU_command_7(ALU_command_7), 
     .Instraction_pype1(Instraction_pype1),
-    .opcode_pype1(opcode_pype1));
+    .opcode_pype1(opcode_pype1),
+    .funct3_pype1(funct3_pype1));
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
     .PC_pype1(PC_pype1), 
@@ -223,7 +227,7 @@ noper noper_unit (
     .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
     .forwarding_ID_MEM_hazard_pyc(forwarding_ID_MEM_hazard_pyc),
     .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
-    
+    .funct3_pype1(funct3_pype1),
 
     .opcode_pype2(opcode_pype2),
     .RegWrite_pype1(RegWrite_pype1), 
@@ -243,7 +247,10 @@ noper noper_unit (
     .MemRW_pype2(MemRW_pype2), 
     .MemBranch_pype2(MemBranch_pype2),
     .Instraction_pype2(Instraction_pype2),
-    .dsize_pype2(dsize_pype2));
+    .dsize_pype2(dsize_pype2),
+    .funct3_pype2(funct3_pype2),
+    .ALU_data1_pype2(ALU_data1_pype2),
+    .ALU_data2_pype2(ALU_data2_pype2));
 
 
     assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
@@ -262,6 +269,10 @@ noper noper_unit (
     .input_ddata(input_ddata),
     .dsize_pype2(dsize_pype2),
     .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
+    .funct3_pype2(funct3_pype2),
+    .ALU_data1_pype2(ALU_data1_pype2),
+    .ALU_data2_pype2(ALU_data2_pype2),
+    .opcode_pype2(opcode_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),

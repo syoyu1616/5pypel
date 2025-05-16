@@ -42,7 +42,7 @@
 `define MEMB_BLT  3'b011 //unsignedも同じ
 `define MEMB_BGE  3'b100 //unsignedも同じ
 
-`define MEMB_JAL  3'b101 
+//`define MEMB_JAL  3'b101 
 `define MEMB_JALR  3'b111 
 
 //`define MEMB_JAL  3'b111 //飛ぶのは確定なのでjalrも同じ 
@@ -163,4 +163,15 @@
 `define ALUC_SRA_n  5'b11100
 `define ALUC_SLT_2  5'b00101
 `define ALUC_SLTU_u 5'b00110
+
+`define ALU_ADD  4'b0000
+`define ALU_SUB  4'b1000
+`define ALU_AND  4'b0001
+`define ALU_OR   4'b0010
+`define ALU_XOR  4'b0100
+`define ALU_SLL  4'b0101
+`define ALU_SRL  4'b0110
+`define ALU_SRA  4'b1110
+`define ALU_SLT  4'b1001
+`define ALU_SLTU 4'b1010
 
