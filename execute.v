@@ -80,6 +80,7 @@ module execute(
         endcase
     endfunction
 
+
 wire [31:0] read_data1_effetive =
     (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data :
     (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data :
@@ -154,7 +155,6 @@ always @(posedge clk, negedge rst) begin
 //keepが上だとkeep中のnopが上手くいかない
 //nopが上だとkeepが割り込んできたときのID/EX_write_pypeが上手くいかない
     if (keep) begin
-
         ALU_co_pype <= ALU_co_pype;
         PCBranch_pype2 <= PCBranch_pype2;
         read_data2_pype2 <= read_data2_pype2;
@@ -172,7 +172,6 @@ always @(posedge clk, negedge rst) begin
         ALU_data2_pype2 <= ALU_data2_pype2;
 
     end else if (nop) begin
-
         /*ALU_co_pype <= 32'b0;*/
         PCBranch_pype2 <= 32'b0;
         read_data2_pype2 <= 32'b0;

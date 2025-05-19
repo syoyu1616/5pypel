@@ -138,7 +138,6 @@ module decode (
     assign funct7 = Instraction_pype[31:25];//これいる？csrで必要
 
     
-
     assign read_reg1 = Instraction_pype[19:15];
     assign read_reg2 = Instraction_pype[24:20]; 
 
@@ -269,7 +268,7 @@ module decode (
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
-                MemBranch_pype <= `MEMB_JALR;//一旦これで
+                MemBranch_pype <= 3'b111;//一旦これで
                 ALU_Src_pype <= 3'b100;
                 Imm_pype <= $signed(imm);
                 for_ALU_c <= 4'b0000;//jalrとの差別化
@@ -282,7 +281,7 @@ module decode (
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_PCp4;
                 MemRW_pype1 <= 2'b0;
-                MemBranch_pype <= `MEMB_JALR;
+                MemBranch_pype <= 3'b111;
                 ALU_Src_pype <= 3'b010;
                 Imm_pype <= $signed(imm);
                 for_ALU_c <= 4'b0001;
@@ -330,22 +329,22 @@ module decode (
                 for_ALU_c <= {1'b0, funct3};
 
                 case (funct3)
-                    `FCT3_BEQ: begin
-                        MemBranch_pype <= `MEMB_BEQ;
+                    3'b000: begin
+                        MemBranch_pype <= 3'b001;
                     end
-                    `FCT3_BNE: begin
-                        MemBranch_pype <= `MEMB_BNE;
+                    3'b001: begin
+                        MemBranch_pype <= 3'b010;
                     end
-                    `FCT3_BLT: begin
-                        MemBranch_pype <= `MEMB_BLT;
+                    3'b100: begin
+                        MemBranch_pype <= 3'b011;
                     end
-                    `FCT3_BGE: begin
-                        MemBranch_pype <= `MEMB_BGE;
+                    3'b101: begin
+                        MemBranch_pype <= 3'b100;
                     end
-                    `FCT3_BLTU: begin
+                    3'b110: begin
                         MemBranch_pype <= 3'b101;
                     end
-                    `FCT3_BGEU: begin
+                    3'b111: begin
                         MemBranch_pype <= 3'b110;
                     end
                 endcase

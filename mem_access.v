@@ -64,18 +64,24 @@ assign dsize     = dsize_pype2;
 assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
 assign branch_PC_contral =
-    ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 0) ||
-     (MemBranch_pype2 == `MEMB_BNE && ALU_co_pype != 0) ||
-     (MemBranch_pype2 == `MEMB_BGE && ALU_co_pype >= 0) ||
-     (MemBranch_pype2 == `MEMB_BLT && ALU_co_pype < 0) ||
-     (MemBranch_pype2 == 3'b110 && (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
-                                    (ALU_co_pype >= 0) :
-                                    (ALU_co_pype <= 0))) ||
-     (MemBranch_pype2 == 3'b101 && (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
-                                    (ALU_co_pype < 0) :
-                                    (ALU_co_pype > 0))) ||
-     //(MemBranch_pype2 == `MEMB_JAL) ||
-     (MemBranch_pype2 == `MEMB_JALR));
+    ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||                         // BEQ
+     (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0) ||                     // BNE
+     (MemBranch_pype2 == 3'b100 && ALU_co_pype >= 32'b0) ||            // BGE
+     (MemBranch_pype2 == 3'b011 && ALU_co_pype < 32'b0) ||             // BLT
+     (MemBranch_pype2 == 3'b110 && ALU_data1_pype2 >= ALU_data2_pype2) ||           // BGEU
+     (MemBranch_pype2 == 3'b101 && ALU_data1_pype2 < ALU_data2_pype2) ||            // BLTU                                   
+     (MemBranch_pype2 == 3'b111));                                             // JALR
+
+
+     /*(MemBranch_pype2 == 3'b110 &&                                                 // BGEU
+      (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
+         $signed(ALU_co_pype) >= 32'b0 :
+         $signed(ALU_co_pype) <= 32'b0)) ||
+
+     (MemBranch_pype2 == 3'b101 &&                                                 // BLTU
+      (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
+         $signed(ALU_co_pype) < 32'b0 :
+         $signed(ALU_co_pype) > 32'b0)) ||   */
 
 assign branch_PC = (opcode_pype2 == 7'b1100111) ? ALU_co_pype :PCBranch_pype2;
                                                         
@@ -121,7 +127,6 @@ always @(posedge clk, negedge rst) begin
 
 
     else begin //ここにelseないと通常の処理にならないよ！
-
     //横流し
     RegWrite_pype3 <= RegWrite_pype2;
     MemtoReg_pype3 <= MemtoReg_pype2;
@@ -130,8 +135,6 @@ always @(posedge clk, negedge rst) begin
     PCp4_pype3 <= PCp4_pype2;
     Instraction_pype3 <= Instraction_pype2;
     forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype2;
-    // mem_data_pype <= (MemRW_pype2[1]) ? output_ddata : 32'b0;
-// を以下のように展開：
 
   if (MemRW_pype2[1]) begin  // 読み込み命令（load）
     case (funct3_pype2)
