@@ -56,6 +56,7 @@ module mem_access(
 
 );
 
+wire debag_write = (dwrite && daddr == 32'h20a7c);
 
 assign dreq      = |MemRW_pype2;
 assign dwrite    = MemRW_pype2[0];
@@ -107,6 +108,25 @@ always @(posedge clk, negedge rst) begin
         Instraction_pype3 <= Instraction_pype3;
         mem_data_pype <=  mem_data_pype;
         forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype3;
+
+         if (MemRW_pype2[1]) begin  // 読み込み命令（load）
+    case (funct3_pype2)
+      3'b000: // LB
+        mem_data_pype = {{24{output_ddata[7]}}, output_ddata[7:0]};
+      3'b001: // LH
+        mem_data_pype = {{16{output_ddata[15]}}, output_ddata[15:0]};
+      3'b010: // LW
+        mem_data_pype = output_ddata;
+      3'b100: // LBU
+        mem_data_pype = {{24{1'b0}}, output_ddata[7:0]};
+      3'b101: // LHU
+        mem_data_pype = {{16{1'b0}}, output_ddata[15:0]};
+      default:
+        mem_data_pype = 32'b0;  // エラー
+    endcase
+  end else begin
+    mem_data_pype = 32'b0;
+  end
 
     end
     
