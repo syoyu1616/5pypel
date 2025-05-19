@@ -63,25 +63,34 @@ assign daddr     = ALU_co_pype;
 assign dsize     = dsize_pype2;
 assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
-assign branch_PC_contral =
+wire e_data = (ALU_data1_pype2 == ALU_data2_pype2);
+wire ne_data = (ALU_data1_pype2 != ALU_data2_pype2);
+wire ge_data_signed = ($signed(ALU_data1_pype2) >= $signed(ALU_data2_pype2));
+wire ge_data_unsigned = ($unsigned(ALU_data1_pype2) >= $unsigned(ALU_data2_pype2));
+wire lt_data_signed = ($signed(ALU_data1_pype2) < $signed(ALU_data2_pype2));
+wire lt_data_unsigned = ($unsigned(ALU_data1_pype2) < $unsigned(ALU_data2_pype2));
+
+/*assign branch_PC_contral =
     ((MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||                         // BEQ
      (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0) ||                     // BNE
-     (MemBranch_pype2 == 3'b100 && ALU_co_pype >= 32'b0) ||            // BGE
-     (MemBranch_pype2 == 3'b011 && ALU_co_pype < 32'b0) ||             // BLT
+     (MemBranch_pype2 == 3'b100 && ALU_co_signed >= 32'b0) ||            // BGE
+     (MemBranch_pype2 == 3'b011 && ALU_co_signed < 32'b0) ||             // BLT
      (MemBranch_pype2 == 3'b110 && ALU_data1_pype2 >= ALU_data2_pype2) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_data1_pype2 < ALU_data2_pype2) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111));                                             // JALR
+     (MemBranch_pype2 == 3'b111));        */                                     // JALR
+
+assign branch_PC_contral =
+    ((MemBranch_pype2 == 3'b001 && e_data) ||                       // BEQ
+     (MemBranch_pype2 == 3'b010 && ne_data) ||                       // BNE
+     (MemBranch_pype2 == 3'b011 && lt_data_signed) ||                  // BLT
+     (MemBranch_pype2 == 3'b100 && ge_data_signed) ||                  // BGE
+     (MemBranch_pype2 == 3'b101 && lt_data_unsigned) ||                // BLTU
+     (MemBranch_pype2 == 3'b110 && ge_data_unsigned) ||                // BGEU
+     (MemBranch_pype2 == 3'b111));                  
 
 
-     /*(MemBranch_pype2 == 3'b110 &&                                                 // BGEU
-      (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
-         $signed(ALU_co_pype) >= 32'b0 :
-         $signed(ALU_co_pype) <= 32'b0)) ||
 
-     (MemBranch_pype2 == 3'b101 &&                                                 // BLTU
-      (ALU_data1_pype2[31] == ALU_data2_pype2[31] ?
-         $signed(ALU_co_pype) < 32'b0 :
-         $signed(ALU_co_pype) > 32'b0)) ||   */
+
 
 assign branch_PC = (opcode_pype2 == 7'b1100111) ? ALU_co_pype :PCBranch_pype2;
                                                         
