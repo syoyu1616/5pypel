@@ -80,6 +80,7 @@ module noper(
     output wire nop_Mem,
     output wire nop_WB
 );
+    wire hazard_debag = iready_n && hazard_pype1;
 
     wire mem_ac_stall; //メモリアクセスによるストールの管理
     //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK

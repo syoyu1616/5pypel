@@ -189,9 +189,9 @@ module decode (
         Imm_pype <= Imm_pype;
         for_ALU_c <= for_ALU_c;
         WReg_pype <= WReg_pype;
-        read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1) /*|| (forwarding_ID_MEM_pyc [1] == 1))*/) ? write_reg_data :
+        read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1_pype;
-        read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1) /*|| (forwarding_ID_MEM_pyc [0] == 1))*/) ? write_reg_data :
+        read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2_pype;
 
         fornop_register1_pype1 <= fornop_register1_pype1;
@@ -397,10 +397,10 @@ module decode (
         PCp4_pype1 <= PCp4_pype0;
         ALU_command_7 <= funct7;
         Instraction_pype1 <= Instraction_pype;
-        read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1) /*|| (forwarding_ID_MEM_pyc [1] == 1)*/) ? write_reg_data :
+        read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
 
-        read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1) /*|| (forwarding_ID_MEM_pyc [0] == 1))*/) ? write_reg_data :
+        read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2;
         
         fornop_register1_pype1 <= fornop_register1_pype;

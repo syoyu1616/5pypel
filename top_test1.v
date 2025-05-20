@@ -63,8 +63,8 @@ integer i, j, k;
 integer fp; //ダンプファイル用のファイルポインタ
 integer cil, cdll, cdsl; //メモリのレイテンシを計算するための変数
 integer accessed_addr;   //アクセスされた最大のアドレスを記憶
-integer cycles;          //実行サイクル数を計算
-
+//integer cycles;          //実行サイクル数を計算
+reg [31:0] cycles;
 //キャッシュの監視
 integer icache_log_fp;
 integer dcache_log_fp;   //ログファイルのファイルポインタ

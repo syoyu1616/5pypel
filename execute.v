@@ -16,8 +16,6 @@ module execute(
 
     input [31:0] Instraction_pype1,
 
-    //input [1:0] ID_EX_write_addi_pype1,
-    //output reg [1:0] ID_EX_write_addi_pype2,
     //forwarding
     input [31:0] forwarding_ID_EX_data,
     input [31:0] forwarding_ID_MEM_data,
@@ -182,7 +180,7 @@ always @(posedge clk, negedge rst) begin
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
         Instraction_pype2 <= 32'b0;
-        dsize_pype2 <= 2'b00;
+        dsize_pype2 <= 2'b10;
         opcode_pype2 <= 7'b0;
         funct3_pype2 <= 3'b0;
         ALU_data1_pype2 <= 32'b0;
@@ -247,10 +245,10 @@ always @(posedge clk, negedge rst) begin
     endcase
 
 case (opcode_pype1)
-    7'b0000011: begin
-        case (for_ALU_c)
-            4'b0000, 4'b0100: dsize_pype2 <= 2'b00; // 1バイト
-            4'b0001, 4'b0101: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
+    7'b0000011 , 7'b0100011: begin
+        case (for_ALU_c[1:0])
+            2'b00: dsize_pype2 <= 2'b00; // 1バイト
+            2'b01: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
             default: dsize_pype2 <= 2'b10; // 4バイト（defaultがないと働かない）
         endcase
     end

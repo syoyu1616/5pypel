@@ -122,10 +122,10 @@ always @(posedge clk, negedge rst) begin
       3'b101: // LHU
         mem_data_pype = {{16{1'b0}}, output_ddata[15:0]};
       default:
-        mem_data_pype = 32'b0;  // エラー
+        mem_data_pype = 32'bz;  // エラー
     endcase
   end else begin
-    mem_data_pype = 32'b0;
+    mem_data_pype = 32'bz;
   end
 
     end
@@ -178,10 +178,10 @@ always @(posedge clk, negedge rst) begin
       3'b101: // LHU
         mem_data_pype = {{16{1'b0}}, output_ddata[15:0]};
       default:
-        mem_data_pype = 32'b0;  // エラー
+        mem_data_pype = 32'bz;  // エラー
     endcase
   end else begin
-    mem_data_pype = 32'b0;
+    mem_data_pype = 32'bz;
   end
 end
 
