@@ -41,7 +41,7 @@ assign write_reg_address = WReg_pype3;
 assign ID_EX_write = ID_EX_write_pype3;
 assign ID_EX_write_addi = ID_EX_write_addi_pype3;
 assign forwarding_stall_load_pyc = forwarding_stall_load_pyc_pype3;
-//memtoregの伝達が途中で止まってるせいでwriteが上手くいってない
+
 
 
 endmodule

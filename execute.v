@@ -52,9 +52,7 @@ module execute(
 
     output reg [1:0] dsize_pype2,
     output reg [6:0] opcode_pype2,
-    output reg [2:0] funct3_pype2,
-    output reg [31:0] ALU_data1_pype2,
-    output reg [31:0] ALU_data2_pype2
+    output reg [2:0] funct3_pype2
 
 );
 
@@ -92,40 +90,6 @@ wire [31:0] read_data2_effective =
     (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
     (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                                  read_data2_pype;
-
-
-/*wire [3:0] ALU_control;
-//xに変えても大丈夫そうなのに0じゃないとバグる ALU_control_
-assign ALU_control =
-    (ALU_control_pype == `ALU_co_pype_normal) ? (
-        (for_ALU_c == `INST_ADD)  ? `ALU_OP_ADD  :
-        (for_ALU_c == `INST_SUB)  ? `ALU_OP_SUB  :
-        (for_ALU_c == `INST_AND)  ? `ALU_OP_AND  :
-        (for_ALU_c == `INST_OR)   ? `ALU_OP_OR   :
-        (for_ALU_c == `INST_XOR)  ? `ALU_OP_XOR  :
-        (for_ALU_c == `INST_SLL)  ? `ALU_OP_SLL  :
-        (for_ALU_c == `INST_SRL)  ? `ALU_OP_SRL  :
-        (for_ALU_c == `INST_SRA)  ? `ALU_OP_SRA  :
-        (for_ALU_c == `INST_SLT)  ? `ALU_OP_SLT  :
-        (for_ALU_c == `INST_SLTU) ? `ALU_OP_SLTU :
-                                    4'bx
-    ) :
-    (ALU_control_pype == `ALU_co_pype_coo) ? (
-        (for_ALU_c == `INST_BEQ || for_ALU_c == `INST_BNE)   ? `ALU_OP_SUB  :
-        (for_ALU_c == `INST_BLT || for_ALU_c == `INST_BGE)   ? `ALU_OP_SLT  :
-        (for_ALU_c == `INST_BLTU || for_ALU_c == `INST_BGEU) ? `ALU_OP_SLTU :
-                                                               4'bx
-    ) :
-    (ALU_control_pype == `ALU_co_pype_j) ? (
-        (for_ALU_c == `INST_JAL)  ? `ALU_OP_ADD  :
-        (for_ALU_c == `INST_JALR) ? `ALU_OP_ADD  :
-                                    4'bx
-    ) :
-    (ALU_control_pype == `ALU_co_pype_load)  ? `ALU_OP_ADD :
-    (ALU_control_pype == `ALU_co_pype_store) ? `ALU_OP_ADD :
-    (ALU_control_pype == `ALU_co_pype_nou ) ? 4'b0000://とりあえず何もしないことにしました 1111にするとなんか無限ループしてる
-                                               4'b0;*/
-    
 
 
 
@@ -166,8 +130,7 @@ always @(posedge clk, negedge rst) begin
         dsize_pype2 <= dsize_pype2;
         opcode_pype2 <= opcode_pype2;
         funct3_pype2 <= funct3_pype2;
-        ALU_data1_pype2 <= ALU_data1_pype2;
-        ALU_data2_pype2 <= ALU_data2_pype2;
+
 
     end else if (nop) begin
         /*ALU_co_pype <= 32'b0;*/
@@ -183,8 +146,7 @@ always @(posedge clk, negedge rst) begin
         dsize_pype2 <= 2'b10;
         opcode_pype2 <= 7'b0;
         funct3_pype2 <= 3'b0;
-        ALU_data1_pype2 <= 32'b0;
-        ALU_data2_pype2 <= 32'b0;
+
 
     end  else if (!rst) begin
         ALU_co_pype <= 32'b0;
@@ -200,8 +162,7 @@ always @(posedge clk, negedge rst) begin
         dsize_pype2 <= 2'b00;
         opcode_pype2 <=7'b0;
         funct3_pype2 <= 3'b0;
-        ALU_data1_pype2 <= 32'b0;
-        ALU_data2_pype2 <= 32'b0;
+
     end
 
 
@@ -245,7 +206,7 @@ always @(posedge clk, negedge rst) begin
     endcase
 
 case (opcode_pype1)
-    7'b0000011 , 7'b0100011: begin
+    7'b0000011, 7'b0100011: begin
         case (for_ALU_c[1:0])
             2'b00: dsize_pype2 <= 2'b00; // 1バイト
             2'b01: dsize_pype2 <= 2'b01; // 2バイト（おそらく）
@@ -265,8 +226,7 @@ endcase
     RegWrite_pype2 <= RegWrite_pype1;
     opcode_pype2 <= opcode_pype1;
     funct3_pype2 <= funct3_pype1;
-    ALU_data1_pype2 <= ALU_data1;
-    ALU_data2_pype2 <= ALU_data2;
+
 
 end
 end

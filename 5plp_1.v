@@ -118,6 +118,7 @@ noper noper_unit (
 
     // 分岐成立
     .branch_PC_contral (branch_PC_contral),
+    .branch_PC_early_contral (branch_PC_early_contral),
 
     //forwarding
     .opcode_pype1(opcode_pype1),
@@ -162,7 +163,6 @@ noper noper_unit (
     fetch i_fetch(.clk(clk), .rst(rst), .keep(stall_IF), .nop(nop_IF), 
     .branch_PC_early_contral(branch_PC_early_contral), 
     .branch_PC_contral(branch_PC_contral), 
-    .iready_n(iready_n), 
     .branch_PC_early(branch_PC_early), 
     .branch_PC(branch_PC), 
     .idata(idata), 
@@ -185,11 +185,18 @@ noper noper_unit (
     .read_reg1(read_reg1), 
     .read_reg2(read_reg2),
     .ID_EX_write_rw (ID_EX_write_rw),
-    .forwarding_ID_MEM_pyc (forwarding_ID_MEM_pyc),
     .write_reg_data(write_reg_data),
     .fornop_register1_pype(fornop_register1_pype),
     .fornop_register2_pype(fornop_register2_pype),
     .Regwrite(Regwrite),
+    .forwarding_ID_EX_pyc(forwarding_ID_EX_pyc),
+    .forwarding_ID_MEM_pyc(forwarding_ID_MEM_pyc),
+    .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
+    .forwarding_ID_MEM_hazard_pyc(forwarding_ID_MEM_hazard_pyc),
+    .forwarding_ID_EX_data(forwarding_ID_EX_data),
+    .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
+    .forwarding_load_data(forwarding_load_data),
+    .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
 
     .fornop_register1_pype1(fornop_register1_pype1),
     .fornop_register2_pype1(fornop_register2_pype1),
@@ -207,7 +214,9 @@ noper noper_unit (
     .ALU_command_7(ALU_command_7), 
     .Instraction_pype1(Instraction_pype1),
     .opcode_pype1(opcode_pype1),
-    .funct3_pype1(funct3_pype1));
+    .funct3_pype1(funct3_pype1),
+    .branch_PC_early_contral(branch_PC_early_contral),
+    .branch_PC_early(branch_PC_early));
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
     .PC_pype1(PC_pype1), 
@@ -248,9 +257,7 @@ noper noper_unit (
     .MemBranch_pype2(MemBranch_pype2),
     .Instraction_pype2(Instraction_pype2),
     .dsize_pype2(dsize_pype2),
-    .funct3_pype2(funct3_pype2),
-    .ALU_data1_pype2(ALU_data1_pype2),
-    .ALU_data2_pype2(ALU_data2_pype2));
+    .funct3_pype2(funct3_pype2));
 
 
     assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
@@ -270,8 +277,6 @@ noper noper_unit (
     .dsize_pype2(dsize_pype2),
     .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
     .funct3_pype2(funct3_pype2),
-    .ALU_data1_pype2(ALU_data1_pype2),
-    .ALU_data2_pype2(ALU_data2_pype2),
     .opcode_pype2(opcode_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),

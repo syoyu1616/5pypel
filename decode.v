@@ -8,12 +8,8 @@ module decode (
     input [31:0] PC_pype0,
     input [31:0] PCp4_pype0,
     input [31:0] Instraction_pype,
-    //stall系はちょっと後回し read_reg_pype や EXからの信号などがあるから
 
-    input [1:0] ID_EX_write,
-    input [1:0] ID_EX_write_addi,
     input [1:0] ID_EX_write_rw,
-    input [1:0] forwarding_ID_MEM_pyc,
     input Regwrite,
     input [31:0] write_reg_data,
 
@@ -23,14 +19,22 @@ module decode (
     output reg [4:0] fornop_register1_pype1,
     output reg [4:0] fornop_register2_pype1,
 
-    //forwading 
-    /*input [31:0] forwarding_ID_EX_data,
-    input [31:0] forwarding_ID_MEM_data,
-    input [1:0] forwarding_ID_EX_pyc,
-    input [1:0] forwarding_ID_MEM_pyc,*/
-
     input [31:0] read_data1,
     input [31:0] read_data2,//registerからのね
+
+    //early branch 
+    input [1:0] forwarding_ID_EX_pyc,
+    input [1:0] forwarding_ID_MEM_pyc,
+    input [1:0] forwarding_stall_load_pyc,
+    input [1:0] forwarding_ID_MEM_hazard_pyc,
+
+    input [31:0] forwarding_ID_EX_data,
+    input [31:0] forwarding_ID_MEM_data,
+    input [31:0] forwarding_load_data,
+    input [31:0] forwarding_ID_MEM_hazard_data,
+
+    output branch_PC_early_contral,
+    output [31:0] branch_PC_early,
 
     output reg [31:0] read_data1_pype,
     output reg [31:0] read_data2_pype,
@@ -47,7 +51,6 @@ module decode (
     //制御線
     output reg RegWrite_pype1,
     output reg [1:0] MemtoReg_pype1,
-
     output reg [1:0] MemRW_pype1,
 
     output reg [2:0] MemBranch_pype,//以下以上とそれのunsign janp equal noteq
@@ -61,17 +64,7 @@ module decode (
         j系（飛ぶの確定） 111
     */
     output reg [3:0] ALU_control_pype,
-    //output reg [2:0] ALU_control_pype,
-    /* ALUを普通に使う　（加算減算シフト論理演算）000
-       比較する 001
-       ALUを用いない（lui）010
-       jalとかの別枠 011
-       fence 100
-       ecall csw 100
-       ebreak 101   
-       mret 110
-       特権sfens sret 111
-    */
+
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [6:0] ALU_command_7,
 
@@ -90,7 +83,11 @@ module decode (
         input[31:0] inst
     );
         if(inst[6:0] == `OP_BRA) begin
-            alu_ctrl = `ALU_SUB;
+            case (inst[14:12])
+                3'b110, 3'b111: alu_ctrl = `ALU_SLTU;
+                3'b100, 3'b101: alu_ctrl = `ALU_SLT;
+                default: alu_ctrl = `ALU_SUB;
+            endcase
         end else if(inst[6:0] == `OP_ALU || inst[6:0] == `OP_ALUI) begin
             case(inst[14:12])
                 `FCT3_ADD:  alu_ctrl = inst[6:0] == `OP_ALU && inst[30] == 1'b1 ? `ALU_SUB : `ALU_ADD;
@@ -141,6 +138,36 @@ module decode (
     assign read_reg1 = Instraction_pype[19:15];
     assign read_reg2 = Instraction_pype[24:20]; 
 
+    //regfileの読み出しに時間がかかるとして、フォワーディングの際も早期分岐を行うように設計する。
+    //regfileの読み出しに時間がかかりすぎる場合、add add beqみたいな時だけ早期分岐をするようにするかも
+
+    wire [31:0] rs1_early_branch = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
+                                   (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                                   (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
+                                   (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
+                                   (ID_EX_write_rw[1] == 1) ? write_reg_data:
+                                   read_data1;
+
+    wire [31:0] rs2_early_branch = (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
+                                   (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                                   (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
+                                   (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
+                                   (ID_EX_write_rw[0] == 1) ? write_reg_data:
+                                   read_data2;
+
+    wire is_branch = (opcode_pype1 == 7'b1100011);
+    //wire is_branch_funct3 = funct3_pype1;
+
+
+    wire taken = (is_branch && !keep) ? (
+                (funct3_pype1 == 3'b000) ? (rs1_early_branch ^ rs2_early_branch) == 32'b0 :
+                (funct3_pype1 == 3'b001) ? (rs1_early_branch ^ rs2_early_branch) != 32'b0 :
+                1'b0
+            ) : 1'b0;
+
+    assign branch_PC_early_contral = taken;
+    assign branch_PC_early = PC_pype1 + Imm_pype;
+
 
     always @(posedge clk, negedge rst) begin
 
@@ -155,6 +182,7 @@ module decode (
         ALU_command_7 <= 7'b0;
         opcode_pype1 <= 7'b0;
         funct3_pype1 <= 3'b0;
+        opcode_pype1 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -184,6 +212,7 @@ module decode (
         ALU_command_7 <= ALU_command_7;
         opcode_pype1 <= opcode_pype1;
         funct3_pype1 <= funct3_pype1;
+        opcode_pype1 <= opcode_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -216,6 +245,7 @@ module decode (
         ALU_command_7 <= 7'b0;
         opcode_pype1 <= 7'b0;
         funct3_pype1 <= 3'b0;
+        opcode_pype1 <= 7'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -248,7 +278,6 @@ module decode (
                 for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
             end
-
             // auipc
             `OP_AUIPC: begin
                 RegWrite_pype1 <= 1;
@@ -259,9 +288,7 @@ module decode (
                 Imm_pype <= imm;
                 for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
-
             end
-
             // J Format
             // jal
             `OP_JAL: begin
@@ -274,7 +301,6 @@ module decode (
                 for_ALU_c <= 4'b0000;//jalrとの差別化
                 WReg_pype <= rd;
             end
-
             // I format
             // jalr
             `OP_JALR: begin
@@ -287,9 +313,7 @@ module decode (
                 for_ALU_c <= 4'b0001;
                 WReg_pype <= rd;
             end
-
             // lb/lh/lw/lbu/lhu
-            //これノーマルにしたせいでfunctによって足し算以外をしちゃってるね
             `OP_LOAD: begin
                 RegWrite_pype1 <= 1;
                 MemtoReg_pype1 <= `write_reg_memd;
@@ -300,7 +324,6 @@ module decode (
                 for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= rd;
             end
-
             // addi/slti/sltiu/xori/ori/andi/slli/srli/srail srailだけ30bit目を参照する
             `OP_ALUI: begin
                 RegWrite_pype1 <= 1;
@@ -314,7 +337,6 @@ module decode (
                  {Instraction_pype[30], funct3} :
                  {1'b0, funct3};
                 WReg_pype <= rd;
-
             end
 
             // B Format
@@ -327,7 +349,6 @@ module decode (
                 ALU_Src_pype <= 3'b011;
                 Imm_pype <= $signed(imm);
                 for_ALU_c <= {1'b0, funct3};
-
                 case (funct3)
                     3'b000: begin
                         MemBranch_pype <= 3'b001;
@@ -349,11 +370,9 @@ module decode (
                     end
                 endcase
             end
-
             // S Format
             // sb/sh/sw
             7'b0100011: begin
-
                 RegWrite_pype1 <= 0;
                 MemtoReg_pype1 <= `write_reg_ALUc;
                 MemRW_pype1 <= 2'b01;
@@ -363,7 +382,6 @@ module decode (
                 for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= 5'b000;
             end
-
             // R Format
             // add/sub/sll/slt/sltu/xor/srl/sra/or/and
             7'b0110011: begin
@@ -375,9 +393,7 @@ module decode (
                 Imm_pype <= 32'b0;
                 for_ALU_c <= {Instraction_pype[30], funct3};
                 WReg_pype <= rd;
-
             end
-
             // default
             // addi x0, x0, 0
             default: begin
@@ -389,7 +405,6 @@ module decode (
                 Imm_pype <= 32'b0;
                 for_ALU_c <= 4'b0;
                 WReg_pype <= 5'b0;
-
             end
         endcase
 
@@ -399,10 +414,8 @@ module decode (
         Instraction_pype1 <= Instraction_pype;
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
-
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2;
-        
         fornop_register1_pype1 <= fornop_register1_pype;
         fornop_register2_pype1 <= fornop_register2_pype;
         opcode_pype1 <= opcode;
@@ -448,3 +461,15 @@ endmodule
 
             // B Format
             // beq/bne/blt/bge/bltu/bgeu
+
+                //output reg [2:0] ALU_control_pype,
+    /* ALUを普通に使う　（加算減算シフト論理演算）000
+       比較する 001
+       ALUを用いない（lui）010
+       jalとかの別枠 011
+       fence 100
+       ecall csw 100
+       ebreak 101   
+       mret 110
+       特権sfens sret 111
+    */

@@ -37,6 +37,7 @@ module noper(
 
     //分岐成立
     input branch_PC_contral,
+    input branch_PC_early_contral,
 
     //メモリアクセスのためのストール
     input iready_n,
@@ -80,7 +81,7 @@ module noper(
     output wire nop_Mem,
     output wire nop_WB
 );
-    wire hazard_debag = iready_n && hazard_pype1;
+
 
     wire mem_ac_stall; //メモリアクセスによるストールの管理
     //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
@@ -149,8 +150,8 @@ assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
 
 
     // nop制御：分岐成立で後続を潰す、またはデータハザードでEXにバブル入れる
-    assign nop_IF  = branch_PC_contral || mem_ac_stall || hazard_pype1;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
-    assign nop_ID  = branch_PC_contral;  // 分岐成立でIDの命令潰す
+    assign nop_IF  = branch_PC_contral || branch_PC_early_contral || mem_ac_stall || hazard_pype1;//1'b0; // IFには基本nop入れない（IFは止めるだけ）
+    assign nop_ID  = branch_PC_contral ;  // 分岐成立でIDの命令潰す
     assign nop_EX  = branch_PC_contral || hazard_pype1; // memアクセスの際に消えてる可能性あるかも
     assign nop_Mem = 1'b0;//branch_PC_contral これがないとbranch成立の後ろが書き込んじゃう
     assign nop_WB  = 1'b0; //branch--で様子見

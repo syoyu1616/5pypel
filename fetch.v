@@ -15,7 +15,6 @@ module fetch (
     input [31:0] branch_PC_early,
     input [31:0] branch_PC,
 
-    input iready_n,
     input [31:0] idata, //instractionのInstraction memoryからのinput
 
     output reg [31:0] iaddr, //pc, Instraction memoryへ渡す値
@@ -31,9 +30,9 @@ assign Instraction_pype = nop ? 32'b0000000000000000000000000001001:idata;//is_n
 assign fornop_register1_pype = Instraction_pype[19:15];
 assign fornop_register2_pype = Instraction_pype[24:20];
 
-    reg [31:0] next_iaddr;
-    reg [31:0] next_PC_pype0;
-    reg [31:0] next_PCp4_pype0;
+reg [31:0] next_iaddr;
+reg [31:0] next_PC_pype0;
+reg [31:0] next_PCp4_pype0;
 
 always @(posedge clk, negedge rst) begin
 
@@ -49,15 +48,16 @@ always @(posedge clk, negedge rst) begin
     end
 
     else if (nop) begin
-        if (branch_PC_early_contral) begin
-            next_iaddr = branch_PC_early;
-            next_PC_pype0 = branch_PC_early;
-            next_PCp4_pype0 = branch_PC_early + 32'd4;
-        end
-        else if (branch_PC_contral) begin
+        if (branch_PC_contral) begin
             next_iaddr = branch_PC;
             next_PC_pype0 = branch_PC;
             next_PCp4_pype0 = branch_PC + 32'd4;
+        end
+        
+        else if (branch_PC_early_contral) begin
+            next_iaddr = branch_PC_early;
+            next_PC_pype0 = branch_PC_early;
+            next_PCp4_pype0 = branch_PC_early + 32'd4;
         end
 
         else begin
@@ -68,10 +68,11 @@ always @(posedge clk, negedge rst) begin
     end
 
     else begin
-        if (branch_PC_early_contral)
-            next_iaddr = branch_PC_early;
-        else if (branch_PC_contral)
+
+        if (branch_PC_contral)
             next_iaddr = branch_PC;
+        else if (branch_PC_early_contral)
+            next_iaddr = branch_PC_early;
         else
             next_iaddr = iaddr + 32'd4;
             next_PC_pype0 = next_iaddr;
