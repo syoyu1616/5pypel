@@ -146,14 +146,14 @@ module decode (
                                    (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
                                    (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
                                    (ID_EX_write_rw[1] == 1) ? write_reg_data:
-                                   read_data1;
+                                   read_data1_pype;
 
     wire [31:0] rs2_early_branch = (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
                                    (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
                                    (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
                                    (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                                    (ID_EX_write_rw[0] == 1) ? write_reg_data:
-                                   read_data2;
+                                   read_data2_pype;
 
     wire is_branch = (opcode_pype1 == 7'b1100011);
     //wire is_branch_funct3 = funct3_pype1;
