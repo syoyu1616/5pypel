@@ -5,26 +5,22 @@ module mem_access(
     input keep, //nopとかのときに一緒に使うやつでpcの維持など
     input nop,
 
-    input RegWrite_pype2,
-    input [2:0] MemBranch_pype2,
-    input [1:0] MemtoReg_pype2,
+    //input RegWrite_pype2,
+    //input [1:0] MemtoReg_pype2,
+    input [2:0] writeback_control_pype2,
     input [1:0] MemRW_pype2,
 
-    input [31:0] PCBranch_pype2,
     input [31:0] PCp4_pype2,
     input [31:0] ALU_co_pype,
     input [31:0] read_data2_pype2,
     input [4:0] WReg_pype2,
 
-    input [31:0] Instraction_pype2,
     input [2:0] funct3_pype2,
-
 
     input [1:0] forwarding_stall_load_pyc_pype2,
     output reg [1:0] forwarding_stall_load_pyc_pype3,
-
     input [1:0] dsize_pype2,
-    input [6:0] opcode_pype2,
+  
 
 
     //memへの入出力
@@ -39,22 +35,16 @@ module mem_access(
     output [31:0] input_ddata,//cashから見てinput
     input [31:0] output_ddata,//cashから見てoutput
 
-    output reg RegWrite_pype3,
-    output reg [1:0] MemtoReg_pype3,
+    //output reg RegWrite_pype3,
+    //output reg [1:0] MemtoReg_pype3,
+    output reg [2:0] writeback_control_pype3,
     output reg [4:0] WReg_pype3,
     output reg [31:0] ALU_co_pype3,
     output reg [31:0] PCp4_pype3,
 
-    output reg [31:0]mem_data_pype,
-
-    //output reg [1:0] MemRW_pype3,
-    output  [31:0] branch_PC,
-    output  branch_PC_contral,
-    output reg [31:0] Instraction_pype3
-
+    output reg [31:0]mem_data_pype
 );
 
-wire debag_write = (dwrite && daddr == 32'h20a7c);
 
 assign dreq      = |MemRW_pype2;
 assign dwrite    = MemRW_pype2[0];
@@ -62,77 +52,41 @@ assign daddr     = ALU_co_pype;
 assign dsize     = dsize_pype2;
 assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
-
-assign branch_PC_contral =
-    (//(MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||                         // BEQ
-     //(MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0) ||                     // BNE
-     (MemBranch_pype2 == 3'b100 && ALU_co_pype == 32'b0) ||            // BGE
-     (MemBranch_pype2 == 3'b011 && ALU_co_pype != 32'b0) ||             // BLT
-     (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
-     (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111));                                             // JALR    
-
-
-
-
-
-assign branch_PC = (opcode_pype2 == 7'b1100111) ? ALU_co_pype :PCBranch_pype2;
                                                         
 
 //dready はop load  の時だけ止めさせるようにする
-always @(posedge clk, negedge rst) begin
+always @(posedge clk or negedge rst) begin
 
-    if (keep) begin
-        RegWrite_pype3 <= RegWrite_pype3;
-        MemtoReg_pype3 <= MemtoReg_pype3;
-        WReg_pype3 <= WReg_pype3;
-        ALU_co_pype3 <= ALU_co_pype3;
-        PCp4_pype3 <= PCp4_pype3;
-        Instraction_pype3 <= Instraction_pype3;
-        mem_data_pype <=  mem_data_pype;
-        forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype3;
-
-         if (MemRW_pype2[1]) begin  // 読み込み命令（load）
-    case (funct3_pype2)
-      3'b000: // LB
-        mem_data_pype = {{24{output_ddata[7]}}, output_ddata[7:0]};
-      3'b001: // LH
-        mem_data_pype = {{16{output_ddata[15]}}, output_ddata[15:0]};
-      3'b010: // LW
-        mem_data_pype = output_ddata;
-      3'b100: // LBU
-        mem_data_pype = {{24{1'b0}}, output_ddata[7:0]};
-      3'b101: // LHU
-        mem_data_pype = {{16{1'b0}}, output_ddata[15:0]};
-      default:
-        mem_data_pype = 32'bz;  // エラー
-    endcase
-  end else begin
-    mem_data_pype = 32'bz;
-  end
-
-    end
-    
-    else if (nop) begin
-        RegWrite_pype3 <= 1'b0;
-        MemtoReg_pype3 <= 2'b0;
+  if (!rst) begin
+        //RegWrite_pype3 <= 1'b0;
+        //MemtoReg_pype3 <= 2'b0;
+        writeback_control_pype3 <= 3'b0;
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        Instraction_pype3 <= 32'b0;
         mem_data_pype <= 32'b0;
         forwarding_stall_load_pyc_pype3 <= 2'b0;
     end
 
-
-
-    else if (!rst) begin
-        RegWrite_pype3 <= 1'b0;
-        MemtoReg_pype3 <= 2'b0;
+    else if (keep) begin
+        //RegWrite_pype3 <= RegWrite_pype3;
+        //MemtoReg_pype3 <= MemtoReg_pype3;
+        writeback_control_pype3 <= writeback_control_pype3;
+        WReg_pype3 <= WReg_pype3;
+        ALU_co_pype3 <= ALU_co_pype3;
+        PCp4_pype3 <= PCp4_pype3;
+        mem_data_pype <=  mem_data_pype;
+        forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype3;
+        mem_data_pype <= mem_data_pype;
+    end
+    
+    else if (nop) begin
+        //RegWrite_pype3 <= 1'b0;
+        //MemtoReg_pype3 <= 2'b0;
+        writeback_control_pype3 <= 3'b0;
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
         PCp4_pype3 <= 32'b0;
-        Instraction_pype3 <= 32'b0;
         mem_data_pype <= 32'b0;
         forwarding_stall_load_pyc_pype3 <= 2'b0;
     end
@@ -140,31 +94,31 @@ always @(posedge clk, negedge rst) begin
 
     else begin //ここにelseないと通常の処理にならないよ！
     //横流し
-    RegWrite_pype3 <= RegWrite_pype2;
-    MemtoReg_pype3 <= MemtoReg_pype2;
+    //RegWrite_pype3 <= RegWrite_pype2;
+    //MemtoReg_pype3 <= MemtoReg_pype2;
+    writeback_control_pype3 <= writeback_control_pype2;
     WReg_pype3 <= WReg_pype2;
     ALU_co_pype3 <= ALU_co_pype;
     PCp4_pype3 <= PCp4_pype2;
-    Instraction_pype3 <= Instraction_pype2;
     forwarding_stall_load_pyc_pype3 <= forwarding_stall_load_pyc_pype2;
 
   if (MemRW_pype2[1]) begin  // 読み込み命令（load）
     case (funct3_pype2)
       3'b000: // LB
-        mem_data_pype = {{24{output_ddata[7]}}, output_ddata[7:0]};
+        mem_data_pype <= {{24{output_ddata[7]}}, output_ddata[7:0]};
       3'b001: // LH
-        mem_data_pype = {{16{output_ddata[15]}}, output_ddata[15:0]};
+        mem_data_pype <= {{16{output_ddata[15]}}, output_ddata[15:0]};
       3'b010: // LW
-        mem_data_pype = output_ddata;
+        mem_data_pype <= output_ddata;
       3'b100: // LBU
-        mem_data_pype = {{24{1'b0}}, output_ddata[7:0]};
+        mem_data_pype <= {{24{1'b0}}, output_ddata[7:0]};
       3'b101: // LHU
-        mem_data_pype = {{16{1'b0}}, output_ddata[15:0]};
+        mem_data_pype <= {{16{1'b0}}, output_ddata[15:0]};
       default:
-        mem_data_pype = 32'bz;  // エラー
+        mem_data_pype <= 32'bz;  // エラー
     endcase
   end else begin
-    mem_data_pype = 32'bz;
+    mem_data_pype <= 32'bz;
   end
 end
 

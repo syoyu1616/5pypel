@@ -16,8 +16,6 @@ module decode (
     input [4:0] fornop_register1_pype,
     input [4:0] fornop_register2_pype,
 
-    output reg [4:0] fornop_register1_pype1,
-    output reg [4:0] fornop_register2_pype1,
 
     input [31:0] read_data1,
     input [31:0] read_data2,//registerからのね
@@ -45,14 +43,19 @@ module decode (
     output reg [31:0] PC_pype1,
     output reg [31:0] PCp4_pype1,
     output reg [31:0] Imm_pype,
-    output reg [3:0] for_ALU_c,
-    output reg [4:0]  WReg_pype,
+
 
     //制御線
-    output reg RegWrite_pype1,
-    output reg [1:0] MemtoReg_pype1,
-    output reg [1:0] MemRW_pype1,
 
+
+    //output reg [6:0] ALU_command_7,
+    //executeで用いる
+    output reg [3:0] ALU_control_pype,
+    output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
+    output reg [2:0] funct3_pype1,
+
+    //memで用いる
+    output reg [1:0] MemRW_pype1,
     output reg [2:0] MemBranch_pype,//以下以上とそれのunsign janp equal noteq
     /*  分岐しない 000
         eq 001
@@ -63,15 +66,11 @@ module decode (
         以上　unsigned 110
         j系（飛ぶの確定） 111
     */
-    output reg [3:0] ALU_control_pype,
 
-    output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
-    output reg [6:0] ALU_command_7,
+    //writebackで用いる
+    output reg [4:0]  WReg_pype,
+    output reg [2:0] writeback_control_pype1    //[2] regwrite [1:0] memtoreg
 
-    output reg [31:0] Instraction_pype1,
-    output reg [6:0] opcode_pype1,
-    output reg [2:0] funct3_pype1
-    
 );
 
 
@@ -126,13 +125,13 @@ module decode (
     assign imm = immgen (Instraction_pype);
 
     wire [2:0] funct3;
-    wire [6:0] funct7;
+    //wire [6:0] funct7;
 
     wire [4:0] rd;
 
     assign rd = Instraction_pype[11:7];
     assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
-    assign funct7 = Instraction_pype[31:25];//これいる？csrで必要
+    //assign funct7 = Instraction_pype[31:25];//これいる？csrで必要
 
     
     assign read_reg1 = Instraction_pype[19:15];
@@ -155,8 +154,7 @@ module decode (
                                    (ID_EX_write_rw[0] == 1) ? write_reg_data:
                                    read_data2_pype;
 
-    wire is_branch = (opcode_pype1 == 7'b1100011);
-    //wire is_branch_funct3 = funct3_pype1;
+    wire is_branch = |MemBranch_pype;
 
 
     wire taken = (is_branch && !keep) ? (
@@ -169,99 +167,80 @@ module decode (
     assign branch_PC_early = PC_pype1 + Imm_pype;
 
 
-    always @(posedge clk, negedge rst) begin
+    always @(posedge clk or negedge rst) begin
 
-    if (nop) begin
+    if (!rst) begin
         //制御線維持
-        RegWrite_pype1 <= 0;
-        MemtoReg_pype1 <= 2'b0;
+
+        writeback_control_pype1 <= 3'b0;
         MemRW_pype1 <= 2'b0;
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 4'b0;
-        ALU_command_7 <= 7'b0;
-        opcode_pype1 <= 7'b0;
+        //ALU_command_7 <= 7'b0;
         funct3_pype1 <= 3'b0;
-        opcode_pype1 <= 7'b0;
+
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
-        for_ALU_c <= 4'b0;
         WReg_pype <= 5'b0;
         read_data1_pype <= 32'b0;
         read_data2_pype <= 32'b0;
-        fornop_register1_pype1 <= 5'b0;
-        fornop_register2_pype1 <= 5'b0;
+
+        
+        //PCの維持
+        PC_pype1 <= 32'b0;
+        PCp4_pype1 <= 32'b0;
+
+    end else if (nop) begin
+        //制御線維持
+        writeback_control_pype1 <= 3'b0;
+        MemRW_pype1 <= 2'b0;
+        MemBranch_pype <= 3'b0;
+        ALU_Src_pype <= 3'b0;
+        ALU_control_pype <= 4'b0;
+        //ALU_command_7 <= 7'b0;
+        funct3_pype1 <= 3'b0;
+
+        //data維持やex以降で用いるやつ0
+        Imm_pype <= 32'b0;
+        WReg_pype <= 5'b0;
+        read_data1_pype <= 32'b0;
+        read_data2_pype <= 32'b0;
 
         //PCやALU_controlの維持
         PC_pype1 <= 32'b0;
         PCp4_pype1 <= 32'b0;
-        Instraction_pype1 <= 32'b0; //これ維持しても意味なくないか？;
     end
     
     // Stop(pause) CPU
     else if (keep) begin
 
         //制御線維持
-        RegWrite_pype1 <= RegWrite_pype1;
-        MemtoReg_pype1 <= MemtoReg_pype1;
+        writeback_control_pype1 <= writeback_control_pype1;
         MemRW_pype1 <= MemRW_pype1;
         MemBranch_pype <= MemBranch_pype;
         ALU_Src_pype <= ALU_Src_pype;
         ALU_control_pype <= ALU_control_pype;
-        ALU_command_7 <= ALU_command_7;
-        opcode_pype1 <= opcode_pype1;
+        //ALU_command_7 <= ALU_command_7;
         funct3_pype1 <= funct3_pype1;
-        opcode_pype1 <= opcode_pype1;
+
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
-        for_ALU_c <= for_ALU_c;
         WReg_pype <= WReg_pype;
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1_pype;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2_pype;
 
-        fornop_register1_pype1 <= fornop_register1_pype1;
-        fornop_register2_pype1 <= fornop_register2_pype1;
-
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
-        Instraction_pype1 <= Instraction_pype1;
 
     end
 
 
-    else if (!rst) begin
-        //制御線維持
-        RegWrite_pype1 <= 0;
-        MemtoReg_pype1 <= 2'b0;
-        MemRW_pype1 <= 2'b0;
-        MemBranch_pype <= 3'b0;
-        ALU_Src_pype <= 3'b0;
-        ALU_control_pype <= 4'b0;
-        ALU_command_7 <= 7'b0;
-        opcode_pype1 <= 7'b0;
-        funct3_pype1 <= 3'b0;
-        opcode_pype1 <= 7'b0;
-
-        //data維持やex以降で用いるやつ0
-        Imm_pype <= 32'b0;
-        for_ALU_c <= 4'b0;
-        WReg_pype <= 5'b0;
-        read_data1_pype <= 32'b0;
-        read_data2_pype <= 32'b0;
-        fornop_register1_pype1 <= 5'b0;
-        fornop_register2_pype1 <= 5'b0;
-        
-        //PCの維持
-        PC_pype1 <= 32'b0;
-        PCp4_pype1 <= 32'b0;
-        Instraction_pype1 <= 32'b0;
-
-    end
 
     // Normal Decode
     else begin
@@ -269,86 +248,69 @@ module decode (
             // U Format
             // lui
             `OP_LUI: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b0;
+                writeback_control_pype1 <= 3'b100;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= 3'b0;
                 ALU_Src_pype <= 3'b0;
                 Imm_pype <= imm;
-                for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
             end
             // auipc
             `OP_AUIPC: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= 2'b0;
+                writeback_control_pype1 <= 3'b100;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= 3'b0;
                 ALU_Src_pype <= 3'b100;
                 Imm_pype <= imm;
-                for_ALU_c <= 4'b0;
                 WReg_pype <= rd;
             end
             // J Format
             // jal
             `OP_JAL: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= `write_reg_PCp4;
+                writeback_control_pype1 <= 3'b110;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= 3'b111;//一旦これで
                 ALU_Src_pype <= 3'b100;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= 4'b0000;//jalrとの差別化
                 WReg_pype <= rd;
             end
             // I format
             // jalr
             `OP_JALR: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= `write_reg_PCp4;
+                writeback_control_pype1 <= 3'b110;
                 MemRW_pype1 <= 2'b0;
                 MemBranch_pype <= 3'b111;
                 ALU_Src_pype <= 3'b010;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= 4'b0001;
                 WReg_pype <= rd;
             end
             // lb/lh/lw/lbu/lhu
             `OP_LOAD: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= `write_reg_memd;
+                writeback_control_pype1 <= 3'b101;
                 MemRW_pype1 <= 2'b10;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= {1'b0, funct3};
                 WReg_pype <= rd;
             end
             // addi/slti/sltiu/xori/ori/andi/slli/srli/srail srailだけ30bit目を参照する
             `OP_ALUI: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= `write_reg_ALUc;
+                writeback_control_pype1 <= 3'b100;
                 MemRW_pype1 <= 2'b00;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= {1'b0, funct3};
-                for_ALU_c <= (funct3 == 3'b101) ?
-                 {Instraction_pype[30], funct3} :
-                 {1'b0, funct3};
                 WReg_pype <= rd;
             end
 
             // B Format
             // beq/bne/blt/bge/bltu/bgeu
             `OP_BRA: begin
-                RegWrite_pype1 <= 0;
-                MemtoReg_pype1 <= `write_reg_ALUc;
+                writeback_control_pype1 <= 3'b000;
                 MemRW_pype1 <= 2'b00;
-                //MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b011;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= {1'b0, funct3};
+                WReg_pype <= 5'b00000;
                 case (funct3)
                     3'b000: begin
                         MemBranch_pype <= 3'b001;
@@ -373,55 +335,44 @@ module decode (
             // S Format
             // sb/sh/sw
             7'b0100011: begin
-                RegWrite_pype1 <= 0;
-                MemtoReg_pype1 <= `write_reg_ALUc;
+                writeback_control_pype1 <= 3'b000;
                 MemRW_pype1 <= 2'b01;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;
                 Imm_pype <= $signed(imm);
-                for_ALU_c <= {1'b0, funct3};
-                WReg_pype <= 5'b000;
+                WReg_pype <= 5'b00000;
             end
             // R Format
             // add/sub/sll/slt/sltu/xor/srl/sra/or/and
             7'b0110011: begin
-                RegWrite_pype1 <= 1;
-                MemtoReg_pype1 <= `write_reg_ALUc;
+                writeback_control_pype1 <= 3'b100;
                 MemRW_pype1 <= 2'b00;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b011;
                 Imm_pype <= 32'b0;
-                for_ALU_c <= {Instraction_pype[30], funct3};
                 WReg_pype <= rd;
             end
             // default
             // addi x0, x0, 0
             default: begin
-                RegWrite_pype1 <= 0;
-                MemtoReg_pype1 <= 2'b00;
+                writeback_control_pype1 <= 3'b000;
                 MemRW_pype1 <= 2'b00;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b000;
                 Imm_pype <= 32'b0;
-                for_ALU_c <= 4'b0;
                 WReg_pype <= 5'b0;
             end
         endcase
 
         PC_pype1 <= PC_pype0;
         PCp4_pype1 <= PCp4_pype0;
-        ALU_command_7 <= funct7;
-        Instraction_pype1 <= Instraction_pype;
+        //ALU_command_7 <= funct7;
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2;
-        fornop_register1_pype1 <= fornop_register1_pype;
-        fornop_register2_pype1 <= fornop_register2_pype;
-        opcode_pype1 <= opcode;
         funct3_pype1 <= funct3;
         ALU_control_pype <= alu_ctrl(Instraction_pype);
-
     end
 end
 

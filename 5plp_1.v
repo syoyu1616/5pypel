@@ -36,36 +36,32 @@ module core(
 
 	integer i;
     //こいつを設定する必要あり
-    //assign dsize = 2'b10;
+
     assign iack_n = 1'b1;
   
     wire [4:0] WReg_pype;
-    wire [1:0] ID_EX_write_pype2, ID_EX_write_pype3, ID_EX_write;
-    wire [1:0] ID_EX_write_addi_pype1, ID_EX_write_addi_pype2, ID_EX_write_addi_pype3, ID_EX_write_addi, ID_EX_write_rw;
+    wire [2:0] writeback_control_pype1, writeback_control_pype2, writeback_control_pype3;
+    wire [1:0] ID_EX_write_rw;
     wire stall_IF, stall_ID, stall_EX, stall_Mem, stall_WB;
     wire nop_IF, nop_ID, nop_EX, nop_Mem, nop_WB;
-    wire [6:0] opcode_pype1,opcode_pype2,opcode_pype3;
+
     wire [31:0] forwarding_ID_EX_data, forwarding_ID_MEM_data, forwarding_ID_MEM_hazard_data, forwarding_load_data;
     wire [1:0] forwarding_ID_EX_pyc, forwarding_ID_MEM_pyc, forwarding_ID_MEM_hazard_pyc, forwarding_stall_load_pyc, forwarding_stall_load_pyc_pype2, forwarding_stall_load_pyc_pype3;
 
 //fetch
     wire branch_PC_early_contral, branch_PC_contral;
 	wire [31:0] branch_PC_early, branch_PC;
-    wire [31:0] Instraction_pype, Instraction_pype1, Instraction_pype2, Instraction_pype3, PC_pype0, PCp4_pype0;
+    wire [31:0] Instraction_pype, PC_pype0, PCp4_pype0;
     wire [4:0] fornop_register1_pype, fornop_register2_pype;
-
-    wire [31:0] read_data1, read_data2, read_data1_pype, read_data2_pype;
-    wire [4:0] read_reg1, read_reg2;
-    wire [31:0] PC_pype1, PCp4_pype1, Imm_pype;
-    wire [3:0] for_ALU_c;
 
 
 //decode   
-    wire RegWrite_pype1;
-    wire [1:0] MemtoReg_pype1, MemRW_pype1;
+    wire [1:0] MemRW_pype1;
     wire [2:0] MemBranch_pype, ALU_Src_pype;
-    wire [6:0] ALU_command_7;
-    wire [4:0] fornop_register1_pype1, fornop_register2_pype1;
+    //wire [6:0] ALU_command_7;
+    wire [31:0] read_data1, read_data2, read_data1_pype, read_data2_pype;
+    wire [4:0] read_reg1, read_reg2;
+    wire [31:0] PC_pype1, PCp4_pype1, Imm_pype;
     wire [2:0] funct3_pype1, funct3_pype2;
     wire [3:0] ALU_control_pype;
     
@@ -73,17 +69,14 @@ module core(
     wire [31:0] PCp4_pype2, ALU_co_pype, read_data2_pype2, PCBranch_pype2;
     wire [4:0] WReg_pype2;
     wire [2:0] MemBranch_pype2;
-    wire [1:0] MemtoReg_pype2, MemRW_pype2;
-    wire RegWrite_pype2;
+    wire [1:0] MemRW_pype2;
     wire [1:0] dsize_pype2;
     wire [31:0] ALU_data1_pype2, ALU_data2_pype2;
 
 //mem
     wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
     wire[4:0] WReg_pype3;
-    wire[1:0] MemtoReg_pype3, MemRW_pype3;
-    wire RegWrite_pype3, branch_nop;
-
+    wire[1:0] MemRW_pype3;
     wire [31:0] input_ddata;  // input用の信号
     wire [31:0] output_ddata; // output用の信号
 
@@ -99,20 +92,15 @@ noper noper_unit (
     // 読み取りレジスタ（IDステージから）
     .fornop_register1_pype (fornop_register1_pype),
     .fornop_register2_pype (fornop_register2_pype),
-    .fornop_register1_pype1 (fornop_register1_pype1),
-    .fornop_register2_pype1 (fornop_register2_pype1),
 
     // 書き込み情報（EX, MEM, WBステージ）
     .WReg_pype     (WReg_pype),
     .WReg_pype2    (WReg_pype2),
     .WReg_pype3    (WReg_pype3),
-    .RegWrite_pype1 (RegWrite_pype1),
-    .RegWrite_pype2 (RegWrite_pype2),
-    .RegWrite_pype3 (RegWrite_pype3),
-    .Instraction_pype (Instraction_pype),
+    .writeback_control_pype1(writeback_control_pype1),
+    .writeback_control_pype2(writeback_control_pype2),
+    .writeback_control_pype3(writeback_control_pype3),
 
-    .Regwrite    (Regwrite),
-    .write_reg_address  (write_reg_address),
 
     .ID_EX_write_rw  (ID_EX_write_rw),
 
@@ -121,9 +109,6 @@ noper noper_unit (
     .branch_PC_early_contral (branch_PC_early_contral),
 
     //forwarding
-    .opcode_pype1(opcode_pype1),
-    .opcode_pype2(opcode_pype2),
-    .opcode_pype3(opcode_pype3),
     .ALU_co_pype(ALU_co_pype),
     .ALU_co_pype3(ALU_co_pype3),
     .write_reg_data(write_reg_data),
@@ -198,22 +183,16 @@ noper noper_unit (
     .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
 
-    .fornop_register1_pype1(fornop_register1_pype1),
-    .fornop_register2_pype1(fornop_register2_pype1),
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
     .Imm_pype(Imm_pype),
-    .for_ALU_c(for_ALU_c), 
     .WReg_pype(WReg_pype), 
-    .RegWrite_pype1(RegWrite_pype1), 
-    .MemtoReg_pype1(MemtoReg_pype1),
+    .writeback_control_pype1(writeback_control_pype1),
     .MemRW_pype1(MemRW_pype1), 
     .MemBranch_pype(MemBranch_pype), 
     .ALU_control_pype(ALU_control_pype), 
     .ALU_Src_pype(ALU_Src_pype),
-    .ALU_command_7(ALU_command_7), 
-    .Instraction_pype1(Instraction_pype1),
-    .opcode_pype1(opcode_pype1),
+    //.ALU_command_7(ALU_command_7), 
     .funct3_pype1(funct3_pype1),
     .branch_PC_early_contral(branch_PC_early_contral),
     .branch_PC_early(branch_PC_early));
@@ -224,10 +203,7 @@ noper noper_unit (
     .read_data1_pype(read_data1_pype), 
     .read_data2_pype(read_data2_pype), 
     .Imm_pype(Imm_pype), 
-    .for_ALU_c(for_ALU_c),
     .WReg_pype(WReg_pype), 
-    .Instraction_pype1(Instraction_pype1), 
-    .opcode_pype1(opcode_pype1),
     .forwarding_ID_EX_data(forwarding_ID_EX_data),
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
@@ -237,47 +213,40 @@ noper noper_unit (
     .forwarding_ID_MEM_hazard_pyc(forwarding_ID_MEM_hazard_pyc),
     .forwarding_stall_load_pyc(forwarding_stall_load_pyc),
     .funct3_pype1(funct3_pype1),
-
-    .opcode_pype2(opcode_pype2),
-    .RegWrite_pype1(RegWrite_pype1), 
-    .MemtoReg_pype1(MemtoReg_pype1), 
+    .writeback_control_pype1(writeback_control_pype1),
     .MemRW_pype1(MemRW_pype1),
     .MemBranch_pype(MemBranch_pype), 
     .ALU_control_pype(ALU_control_pype),
     .ALU_Src_pype(ALU_Src_pype), 
-    .ALU_command_7(ALU_command_7),
+    //.ALU_command_7(ALU_command_7),
+
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
     .ALU_co_pype(ALU_co_pype), 
     .read_data2_pype2(read_data2_pype2), 
     .WReg_pype2(WReg_pype2),
-    .RegWrite_pype2(RegWrite_pype2), 
-    .MemtoReg_pype2(MemtoReg_pype2), 
+    .writeback_control_pype2(writeback_control_pype2),
     .MemRW_pype2(MemRW_pype2), 
     .MemBranch_pype2(MemBranch_pype2),
-    .Instraction_pype2(Instraction_pype2),
     .dsize_pype2(dsize_pype2),
-    .funct3_pype2(funct3_pype2));
+    .funct3_pype2(funct3_pype2),
+    .branch_PC_contral(branch_PC_contral),
+    .branch_PC(branch_PC));
 
 
     assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
 
     mem_access i_mem_access (.rst(rst), .clk(clk), .keep(stall_Mem), .nop(nop_Mem), 
-    .RegWrite_pype2 (RegWrite_pype2),
-    .MemBranch_pype2 (MemBranch_pype2), 
-    .MemtoReg_pype2 (MemtoReg_pype2), 
+    .writeback_control_pype2(writeback_control_pype2),
     .MemRW_pype2 (MemRW_pype2),
-    .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
     .ALU_co_pype(ALU_co_pype), 
     .read_data2_pype2(read_data2_pype2),
     .WReg_pype2 (WReg_pype2), 
-    .Instraction_pype2(Instraction_pype2), 
     .input_ddata(input_ddata),
     .dsize_pype2(dsize_pype2),
     .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
     .funct3_pype2(funct3_pype2),
-    .opcode_pype2(opcode_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),
@@ -287,37 +256,29 @@ noper noper_unit (
     .dready_n(dready_n),
     .dbusy (dbusy),  
     .dsize (dsize),
-    .RegWrite_pype3(RegWrite_pype3), 
-    .MemtoReg_pype3(MemtoReg_pype3), 
+    .writeback_control_pype3(writeback_control_pype3),
     .WReg_pype3(WReg_pype3),
     .ALU_co_pype3(ALU_co_pype3), 
     .PCp4_pype3(PCp4_pype3), 
-    .mem_data_pype(mem_data_pype), 
-    .branch_PC(branch_PC),
-    .branch_PC_contral(branch_PC_contral), 
-    .Instraction_pype3(Instraction_pype3));
+    .mem_data_pype(mem_data_pype)
+    );
 
     // inout信号をinput/output信号に分けて処理
     assign ddata = input_ddata; // キャッシュから見てinputの奴をinoutに入れる
-
 
     writeback i_writeback (.rst(rst), .clk(clk), .keep(stall_WB), .nop(nop_WB),
     .PCp4_pype3(PCp4_pype3),
     .mem_data_pype(mem_data_pype),
     .ALU_co_pype3(ALU_co_pype3),
     .WReg_pype3(WReg_pype3),
-    .RegWrite_pype3(RegWrite_pype3),
-    .MemtoReg_pype3(MemtoReg_pype3),
-    .ID_EX_write_pype3(ID_EX_write_pype3),
-    .ID_EX_write_addi_pype3 (ID_EX_write_addi_pype3),
+    .writeback_control_pype3(writeback_control_pype3),
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
 
     .forwarding_stall_load_pyc  (forwarding_stall_load_pyc),
     .write_reg_data    (write_reg_data),
     .Regwrite          (Regwrite),
-    .write_reg_address (write_reg_address),
-    .ID_EX_write(ID_EX_write),
-    .ID_EX_write_addi (ID_EX_write_addi));
+    .write_reg_address (write_reg_address));
+
 
     regfile i_regfile(
     .clk(clk), .rst(rst), .write_n(Regwrite),

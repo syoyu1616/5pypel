@@ -19,21 +19,16 @@ module noper(
     input [4:0] fornop_register1_pype,
     input [4:0] fornop_register2_pype,
 
-    input [4:0] fornop_register1_pype1,
-    input [4:0] fornop_register2_pype1,
 
     //書き込みの有無
     input [4:0] WReg_pype,
     input [4:0] WReg_pype2,
     input [4:0] WReg_pype3,
-    input RegWrite_pype1,
-    input RegWrite_pype2,
-    input RegWrite_pype3,
-    input [31:0] Instraction_pype,
+    input [2:0] writeback_control_pype1,
+    input [2:0] writeback_control_pype2,
+    input [2:0] writeback_control_pype3,
 
 
-    input [4:0] write_reg_address,
-    input Regwrite,
 
     //分岐成立
     input branch_PC_contral,
@@ -54,9 +49,6 @@ module noper(
     input [31:0] ALU_co_pype3,
     input [31:0] write_reg_data,
     input [31:0] mem_data_pype,
-    input [6:0] opcode_pype1,
-    input [6:0] opcode_pype2,
-    input [6:0] opcode_pype3,
 
     output  [31:0] forwarding_ID_EX_data,
     output  [31:0] forwarding_ID_MEM_data,
@@ -82,9 +74,8 @@ module noper(
     output wire nop_WB
 );
 
-
-    wire mem_ac_stall; //メモリアクセスによるストールの管理
     //cash側でデータ保持があるので、同じ場所に書き込みとかじゃない限りOK
+    wire mem_ac_stall; //メモリアクセスによるストールの管理
     assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
 
     assign forwarding_ID_EX_data = ALU_co_pype;
@@ -105,23 +96,23 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
         //hazard発生は前側の命令がloadの時だけ（opcode_pype == 7'b0000011）
         //read_data_pypeに書き込むのは
         
-        hazard_pype1 <= RegWrite_pype1 && (WReg_pype != 0) && 
+        hazard_pype1 <= /*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0) && 
                         ((WReg_pype == fornop_register1_pype) || (WReg_pype == fornop_register2_pype)) && 
-                        (opcode_pype1 == 7'b0000011);
+                        (MemRW_pype1[1] == 1'b1);
 
 
-        if ((RegWrite_pype1 && (WReg_pype != 0)) && (opcode_pype1 != 7'b0000011)) 
+        if ((/*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] != 1'b1)) 
             forwarding_ID_EX_pyc <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
             forwarding_ID_EX_pyc <= 2'b0;
 
-        if (RegWrite_pype2 && (WReg_pype2 != 0)) //二つ離れてたら大丈夫！！
+        if (/*RegWrite_pype2*/ writeback_control_pype2[2] && (WReg_pype2 != 0)) //二つ離れてたら大丈夫！！
             forwarding_ID_MEM_pyc <= {(WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype)};
         else
             forwarding_ID_MEM_pyc <= 2'b0;
 
 
-        if ((RegWrite_pype1 && (WReg_pype != 0)) && (opcode_pype1 == 7'b0000011)) 
+        if ((/*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] == 1'b1)) 
             forwarding_stall_load_pyc_pype2 <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
             forwarding_stall_load_pyc_pype2 <= 2'b0;
@@ -138,7 +129,7 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
 end
 
 
-assign ID_EX_write_rw = (RegWrite_pype3 && (WReg_pype3 != 0)) ?
+assign ID_EX_write_rw = (/*RegWrite_pype3*/ writeback_control_pype3[2] && (WReg_pype3 != 0)) ?
     {(WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype)} : 2'b00;
 
 

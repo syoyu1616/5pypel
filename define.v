@@ -96,35 +96,11 @@
 `define INST_Sh  4'b0001
 `define INST_Sw  4'b0010
 
-`define write_reg_PCp4 2'b10
+/*`define write_reg_PCp4 2'b10
 `define write_reg_memd 2'b01
-`define write_reg_ALUc 2'b00
+`define write_reg_ALUc 2'b00*/
 
 
-
-/*
-// 命令識別用（ALU_control_pype に応じて for_ALU_c に入る値）
-`define INST_ADD     4'b0000
-`define INST_SUB     4'b0001
-`define INST_AND     4'b0010
-`define INST_OR      4'b0011
-`define INST_XOR     4'b0100
-`define INST_SLL     4'b0101
-`define INST_SRL     4'b0110
-`define INST_SRA     4'b0111
-`define INST_SLT     4'b1000
-`define INST_SLTU    4'b1001
-
-`define INST_BEQ     4'b1010
-`define INST_BNE     4'b1011
-`define INST_BLT     4'b1100
-`define INST_BGE     4'b1101
-`define INST_BLTU    4'b1110
-`define INST_BGEU    4'b1111
-
-`define INST_JAL     4'b0000
-`define INST_JALR    4'b0001
-*/
 
 // ALU制御用（ALU_controlに渡す）
 `define ALU_OP_ADD   4'b0000

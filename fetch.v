@@ -34,17 +34,22 @@ reg [31:0] next_iaddr;
 reg [31:0] next_PC_pype0;
 reg [31:0] next_PCp4_pype0;
 
-always @(posedge clk, negedge rst) begin
-
+always @(posedge clk or negedge rst) begin
     if (!rst) begin
         next_iaddr = 32'h0001_0000;
         next_PC_pype0 = 32'h0001_0000;
         next_PCp4_pype0 = 32'h0001_0004;
+        iaddr <= next_iaddr;
+        PC_pype0 <= next_PC_pype0;
+        PCp4_pype0 <= next_PCp4_pype0;
     end
     else if (keep) begin
         next_iaddr = iaddr;
         next_PC_pype0 = PC_pype0;
         next_PCp4_pype0 = PCp4_pype0;
+        iaddr <= next_iaddr;
+        PC_pype0 <= next_PC_pype0;
+        PCp4_pype0 <= next_PCp4_pype0;
     end
 
     else if (nop) begin
@@ -52,37 +57,52 @@ always @(posedge clk, negedge rst) begin
             next_iaddr = branch_PC;
             next_PC_pype0 = branch_PC;
             next_PCp4_pype0 = branch_PC + 32'd4;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
         end
         
         else if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;
             next_PC_pype0 = branch_PC_early;
             next_PCp4_pype0 = branch_PC_early + 32'd4;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
         end
 
         else begin
             next_iaddr = iaddr;
             next_PC_pype0 = PC_pype0;
             next_PCp4_pype0 = PCp4_pype0;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
         end
     end
 
     else begin
-
-        if (branch_PC_contral)
+        if (branch_PC_contral) begin
             next_iaddr = branch_PC;
-        else if (branch_PC_early_contral)
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
+        end else if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;
-        else
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
+        end else begin
             next_iaddr = iaddr + 32'd4;
             next_PC_pype0 = next_iaddr;
             next_PCp4_pype0 = next_iaddr + 32'd4;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
+        end
     end
+ 
 
-    // 最後にまとめて代入！
-    iaddr <= next_iaddr;
-    PC_pype0 <= next_PC_pype0;
-    PCp4_pype0 <= next_PCp4_pype0;
 end
 
 endmodule
