@@ -61,6 +61,7 @@ always @(posedge clk or negedge rst) begin
             PC_pype0 <= next_PC_pype0;
             PCp4_pype0 <= next_PCp4_pype0;
         end
+
         
         else if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;

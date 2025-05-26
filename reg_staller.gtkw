@@ -1,52 +1,38 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Thu May  8 01:58:38 2025
+[*] Mon May 26 01:52:41 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Thu May  8 01:53:22 2025"
-[dumpfile_size] 15380480
+[dumpfile_mtime] "Mon May 26 01:51:09 2025"
+[dumpfile_size] 102400
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 12385
+[timestart] 3284600
 [size] 1000 600
 [pos] -1 -1
-*-4.000000 12390 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-15.000000 3340000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
 [sst_width] 352
-[signals_width] 246
+[signals_width] 206
 [sst_expanded] 1
 [sst_vpaned_height] 157
 @22
 top_test.i_top.i_core.i_fetch.iaddr[31:0]
 top_test.i_top.i_core.i_fetch.idata[31:0]
-@4022
-^>1 /home/seigo/gtkwave-python-filter-process/examples/riscv-filter.py
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
-@22
-top_test.i_top.i_core.i_decode.Instraction_pype1[31:0]
-top_test.i_top.i_core.i_mem_access.Instraction_pype2[31:0]
-top_test.i_top.i_core.i_mem_access.Instraction_pype3[31:0]
 @28
-top_test.i_top.i_core.i_mem_access.MemBranch_pype2[2:0]
-top_test.i_top.i_core.noper_unit.branch_PC_contral
+top_test.i_top.i_core.i_csr_reg.clk
 @22
-top_test.i_top.i_core.i_execute.ALU_data1[31:0]
-top_test.i_top.i_core.i_execute.ALU_data2[31:0]
-top_test.i_top.i_core.i_mem_access.ALU_co_pype[31:0]
-top_test.i_top.i_dcache.caddr[31:0]
-top_test.i_top.i_dcache.cout[31:0]
-top_test.i_top.i_dcache.cdata[31:0]
-top_test.i_top.i_core.i_mem_access.mem_data_pype[31:0]
-top_test.i_top.i_dcache.state[3:0]
-@28
-top_test.i_top.i_core.i_mem_access.dreq
-@22
-top_test.i_top.i_core.i_regfile.in[31:0]
-top_test.i_top.i_core.i_regfile.rd[4:0]
-@28
-top_test.i_top.i_core.i_regfile.write_n
+top_test.i_top.i_core.i_csr_reg.csr_addr[11:0]
 @29
-top_test.i_top.i_core.noper_unit.mem_ac_stall
+top_test.i_top.i_core.i_decode.is_csr_pype1
+@28
+top_test.i_top.i_core.i_csr_reg.csr_we
+@22
+top_test.i_top.i_core.i_csr_reg.csr_mepc[31:0]
+top_test.i_top.i_core.i_csr_reg.csr_mtvec[31:0]
+top_test.i_top.i_core.i_csr_reg.csr_rdata[31:0]
+top_test.i_top.i_core.i_csr_reg.csr_wdata[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

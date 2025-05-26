@@ -9,6 +9,7 @@
 //`include "mem_access.v"
 `include "writeback.v"
 `include "noper.v"
+`include "csr_reg.v"
 
 //opコードなんかの定義を事前にここで行ってる
 
@@ -74,17 +75,21 @@ module core(
     wire [31:0] ALU_data1_pype2, ALU_data2_pype2;
 
 //mem
-    wire[31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
-    wire[4:0] WReg_pype3;
-    wire[1:0] MemRW_pype3;
+    wire [31:0] ALU_co_pype3, PCp4_pype3, mem_data_pype;
+    wire [4:0] WReg_pype3;
+    wire [1:0] MemRW_pype3;
     wire [31:0] input_ddata;  // input用の信号
     wire [31:0] output_ddata; // output用の信号
 
 //regfile
-    wire[4:0] rs1, rs2, write_reg_address;
-    wire[31:0] write_reg_data;
+    wire [4:0] rs1, rs2, write_reg_address;
+    wire [31:0] write_reg_data;
     wire Regwrite;
 
+//csr_reg
+    wire csr_we, is_csr_pype1;
+    wire [11:0] csr_addr;
+    wire [31:0] csr_wdata, csr_rdata, csr_mtvec, csr_mepc; 
 
 noper noper_unit (
     .clk(clk),
@@ -100,7 +105,6 @@ noper noper_unit (
     .writeback_control_pype1(writeback_control_pype1),
     .writeback_control_pype2(writeback_control_pype2),
     .writeback_control_pype3(writeback_control_pype3),
-
 
     .ID_EX_write_rw  (ID_EX_write_rw),
 
@@ -192,7 +196,7 @@ noper noper_unit (
     .MemBranch_pype(MemBranch_pype), 
     .ALU_control_pype(ALU_control_pype), 
     .ALU_Src_pype(ALU_Src_pype),
-    //.ALU_command_7(ALU_command_7), 
+    .is_csr_pype1(is_csr_pype1),
     .funct3_pype1(funct3_pype1),
     .branch_PC_early_contral(branch_PC_early_contral),
     .branch_PC_early(branch_PC_early));
@@ -218,7 +222,10 @@ noper noper_unit (
     .MemBranch_pype(MemBranch_pype), 
     .ALU_control_pype(ALU_control_pype),
     .ALU_Src_pype(ALU_Src_pype), 
-    //.ALU_command_7(ALU_command_7),
+    .is_csr_pype1(is_csr_pype1),
+    .csr_rdata(csr_rdata),
+    .csr_mtvec(csr_mtvec),
+    .csr_mepc(csr_mepc),
 
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
@@ -231,7 +238,10 @@ noper noper_unit (
     .dsize_pype2(dsize_pype2),
     .funct3_pype2(funct3_pype2),
     .branch_PC_contral(branch_PC_contral),
-    .branch_PC(branch_PC));
+    .branch_PC(branch_PC),
+    .csr_we(csr_we),
+    .csr_addr(csr_addr)
+    );
 
 
     assign output_ddata = ddata;  // キャッシュから見てoutputの奴をinoutから回収
@@ -285,5 +295,15 @@ noper noper_unit (
     .rs1(read_reg1), .rs2(read_reg2), .rd(write_reg_address),
     .in(write_reg_data),
     .out1(read_data1), .out2(read_data2));
+
+    csr_reg i_csr_reg(
+    .clk(clk), .rst(rst), 
+    .csr_we(csr_we),
+    .csr_addr(csr_addr),
+    .csr_wdata(csr_wdata),
+    .csr_rdata(csr_rdata),
+    .csr_mtvec(csr_mtvec),
+    .csr_mepc(csr_mepc)
+    );
 
 endmodule

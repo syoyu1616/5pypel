@@ -24,6 +24,16 @@ module execute(
     input [1:0] forwarding_ID_MEM_hazard_pyc,
     input [1:0] forwarding_stall_load_pyc,
 
+    //csr
+    input is_csr_pype1,
+    output csr_we, //csrへのoutput
+    output [11:0] csr_addr,
+    output [31:0] csr_wdata,
+
+    input [31:0] csr_rdata,
+    input [31:0] csr_mtvec,
+    input [31:0] csr_mepc,
+
     //制御線
     input [2:0] writeback_control_pype1,
     input [1:0] MemRW_pype1,
@@ -50,6 +60,32 @@ module execute(
     output branch_PC_contral
 
 );
+    //assign csr_we = is_csr_pype1;
+    //assign csr_addr = Imm_pype[11:0];
+    function signed [31:0] csr_alu(
+        input signed [31:0] rs1_val, 
+        input signed [31:0] csr_rdata,
+        input signed [31:0] imm,
+        input [2:0] funct3);
+        case (funct3)
+            3'b001: csr_alu = rs1_val;                  // CSRRW
+            3'b010: csr_alu = csr_rdata | rs1_val;      // CSRRS
+            3'b011: csr_alu = csr_rdata & ~rs1_val;     // CSRRC
+            3'b101: csr_alu = imm;                      // CSRRWI
+            3'b110: csr_alu = csr_rdata | imm;          // CSRRSI
+            3'b111: csr_alu = csr_rdata & ~imm;         // CSRRCI
+        endcase
+    endfunction
+    //rdataはcsr_regからassignでもらってくる
+    wire is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
+    wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h302);
+    assign csr_we = is_csr_pype1 | is_ecall;  // mretでは書き込まない
+    assign csr_addr = (is_ecall) ? 12'h342 : Imm_pype[11:0];  // mcause書き込み
+    assign csr_wdata = (is_ecall) ? 32'd11 : csr_alu(ALU_data1, csr_rdata, Imm_pype, funct3_pype1);
+
+
+
+
 
     //alu: ALU
     function signed [31:0] alu(
@@ -86,7 +122,7 @@ wire [31:0] read_data2_effective =
                                  read_data2_pype;
 
 
-
+//分岐予測だとジャンプの時のpc+4を書く必要もある
 wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
                         (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
@@ -97,7 +133,7 @@ wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         32'bx;
 
 
-//これだけだとread_data_pype2にデータがいかない
+
 wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
                         (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
@@ -105,15 +141,20 @@ wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                         (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
                         32'bx;
+
 //クリティカルパスになるかも？
 assign branch_PC_contral =
     ((MemBranch_pype2 == 3'b100 && ALU_co_pype == 32'b0) ||            // BGE
      (MemBranch_pype2 == 3'b011 && ALU_co_pype != 32'b0) ||             // BLT
      (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111));                                             // JALR    
+     (MemBranch_pype2 == 3'b111) ||
+     (is_ecall) || (is_mret));                                             // JALR    
 
-assign branch_PC = PCBranch_pype2;
+assign branch_PC = //(is_ecall) ? csr_mtvec :
+                   //(is_mret)  ? csr_mepc :
+                   PCBranch_pype2;
+
 
 
 always @(posedge clk or negedge rst) begin
@@ -125,8 +166,6 @@ always @(posedge clk or negedge rst) begin
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
-        //RegWrite_pype2 <= 1'b0;
-        //MemtoReg_pype2 <= 2'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
@@ -139,8 +178,6 @@ always @(posedge clk or negedge rst) begin
         read_data2_pype2 <= read_data2_pype2;
         PCp4_pype2 <= PCp4_pype2;
         WReg_pype2 <= WReg_pype2;
-        //RegWrite_pype2 <= RegWrite_pype2;
-        //MemtoReg_pype2 <= MemtoReg_pype2;
         writeback_control_pype2 <= writeback_control_pype2;
         MemRW_pype2 <= MemRW_pype2;
         MemBranch_pype2 <= MemBranch_pype2;
@@ -152,8 +189,6 @@ always @(posedge clk or negedge rst) begin
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
-        //RegWrite_pype2 <= 1'b0;
-        //MemtoReg_pype2 <= 2'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
         MemBranch_pype2 <= 1'b0;
@@ -165,7 +200,17 @@ always @(posedge clk or negedge rst) begin
 
     else begin
 
-    ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
+    case(csr_we)
+        1'b1: begin
+            ALU_co_pype <= csr_alu(ALU_data1, csr_rdata, Imm_pype,funct3_pype1);
+        end
+        default: begin
+            ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
+        end
+    endcase
+
+
+    //ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
     
     case(MemBranch_pype)
             3'b111: begin

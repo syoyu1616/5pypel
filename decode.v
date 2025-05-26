@@ -46,13 +46,11 @@ module decode (
 
 
     //制御線
-
-
-    //output reg [6:0] ALU_command_7,
     //executeで用いる
     output reg [3:0] ALU_control_pype,
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [2:0] funct3_pype1,
+    output reg is_csr_pype1,
 
     //memで用いる
     output reg [1:0] MemRW_pype1,
@@ -115,7 +113,7 @@ module decode (
             `OP_BRA:   immgen = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
             `OP_AUIPC: immgen = {inst[31:12], 12'b0};
             `OP_LUI:   immgen = {inst[31:12], 12'b0};
-            `OP_JALR:  immgen = {{20{inst[31]}}, inst[31:20]};
+            `OP_JALR, 7'b1110011:  immgen = {{20{inst[31]}}, inst[31:20]};
             `OP_JAL:   immgen = {{20{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
             default:   immgen = 32'b0;
         endcase
@@ -125,7 +123,7 @@ module decode (
     assign imm = immgen (Instraction_pype);
 
     wire [2:0] funct3;
-    //wire [6:0] funct7;
+
 
     wire [4:0] rd;
 
@@ -167,6 +165,7 @@ module decode (
     assign branch_PC_early = PC_pype1 + Imm_pype;
 
 
+
     always @(posedge clk or negedge rst) begin
 
     if (!rst) begin
@@ -177,8 +176,8 @@ module decode (
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 4'b0;
-        //ALU_command_7 <= 7'b0;
         funct3_pype1 <= 3'b0;
+        is_csr_pype1 <= 1'b0;
 
 
         //data維持やex以降で用いるやつ0
@@ -199,8 +198,9 @@ module decode (
         MemBranch_pype <= 3'b0;
         ALU_Src_pype <= 3'b0;
         ALU_control_pype <= 4'b0;
-        //ALU_command_7 <= 7'b0;
         funct3_pype1 <= 3'b0;
+        is_csr_pype1 <= 1'b0;
+
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -222,9 +222,8 @@ module decode (
         MemBranch_pype <= MemBranch_pype;
         ALU_Src_pype <= ALU_Src_pype;
         ALU_control_pype <= ALU_control_pype;
-        //ALU_command_7 <= ALU_command_7;
         funct3_pype1 <= funct3_pype1;
-
+        is_csr_pype1 <= is_csr_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -352,6 +351,18 @@ module decode (
                 Imm_pype <= 32'b0;
                 WReg_pype <= rd;
             end
+
+            //例外処理 csr ecall mret
+            7'b1110011: begin
+                writeback_control_pype1 <= 3'b100;
+                MemRW_pype1 <= 2'b00;
+                MemBranch_pype <= 3'b000;
+                ALU_Src_pype <= 3'b010;//専用のALUを使うが、read_data1は用いるので
+                Imm_pype <= imm;
+                WReg_pype <= rd;
+
+
+            end
             // default
             // addi x0, x0, 0
             default: begin
@@ -366,7 +377,7 @@ module decode (
 
         PC_pype1 <= PC_pype0;
         PCp4_pype1 <= PCp4_pype0;
-        //ALU_command_7 <= funct7;
+        is_csr_pype1 <= (opcode == 7'b1110011);
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
@@ -410,10 +421,7 @@ endmodule
             end
             */
 
-            // B Format
-            // beq/bne/blt/bge/bltu/bgeu
 
-                //output reg [2:0] ALU_control_pype,
     /* ALUを普通に使う　（加算減算シフト論理演算）000
        比較する 001
        ALUを用いない（lui）010
