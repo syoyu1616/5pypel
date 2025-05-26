@@ -1,33 +1,43 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Mon May 26 01:52:41 2025
+[*] Mon May 26 02:20:59 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Mon May 26 01:51:09 2025"
-[dumpfile_size] 102400
+[dumpfile_mtime] "Mon May 26 02:09:24 2025"
+[dumpfile_size] 106496
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 3284600
+[timestart] 3391600
 [size] 1000 600
 [pos] -1 -1
-*-15.000000 3340000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-13.000000 3400000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
 [sst_width] 352
-[signals_width] 206
+[signals_width] 214
 [sst_expanded] 1
 [sst_vpaned_height] 157
+@28
+top_test.i_top.i_core.i_csr_reg.clk
 @22
 top_test.i_top.i_core.i_fetch.iaddr[31:0]
 top_test.i_top.i_core.i_fetch.idata[31:0]
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 @28
-top_test.i_top.i_core.i_csr_reg.clk
+top_test.i_top.i_core.i_fetch.branch_PC_contral
 @22
-top_test.i_top.i_core.i_csr_reg.csr_addr[11:0]
-@29
-top_test.i_top.i_core.i_decode.is_csr_pype1
+top_test.i_top.i_core.i_decode.rs1_early_branch[31:0]
+top_test.i_top.i_core.i_decode.rs2_early_branch[31:0]
 @28
+top_test.i_top.i_core.i_fetch.branch_PC_early_contral
+@23
+top_test.i_top.i_dcache.caddr[31:0]
+@22
+top_test.i_top.i_dcache.cout[31:0]
+top_test.i_top.i_dcache.cdata[31:0]
+top_test.i_top.i_core.i_csr_reg.csr_addr[11:0]
+@28
+top_test.i_top.i_core.i_decode.is_csr_pype1
 top_test.i_top.i_core.i_csr_reg.csr_we
 @22
 top_test.i_top.i_core.i_csr_reg.csr_mepc[31:0]

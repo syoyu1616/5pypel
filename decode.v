@@ -44,13 +44,17 @@ module decode (
     output reg [31:0] PCp4_pype1,
     output reg [31:0] Imm_pype,
 
+    //csr
+    output reg is_csr_pype1,
+    output reg [11:0] csr_pype1,
 
     //制御線
     //executeで用いる
     output reg [3:0] ALU_control_pype,
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [2:0] funct3_pype1,
-    output reg is_csr_pype1,
+
+
 
     //memで用いる
     output reg [1:0] MemRW_pype1,
@@ -113,8 +117,9 @@ module decode (
             `OP_BRA:   immgen = {{20{inst[31]}}, inst[7], inst[30:25], inst[11:8], 1'b0};
             `OP_AUIPC: immgen = {inst[31:12], 12'b0};
             `OP_LUI:   immgen = {inst[31:12], 12'b0};
-            `OP_JALR, 7'b1110011:  immgen = {{20{inst[31]}}, inst[31:20]};
+            `OP_JALR:  immgen = {{20{inst[31]}}, inst[31:20]};
             `OP_JAL:   immgen = {{20{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
+            7'b1110011: immgen = {{27{1'b0}}, inst[19:15]};
             default:   immgen = 32'b0;
         endcase
     endfunction
@@ -126,10 +131,11 @@ module decode (
 
 
     wire [4:0] rd;
+    wire [11:0] csr = Instraction_pype[31:20];
 
     assign rd = Instraction_pype[11:7];
     assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
-    //assign funct7 = Instraction_pype[31:25];//これいる？csrで必要
+
 
     
     assign read_reg1 = Instraction_pype[19:15];
@@ -139,20 +145,20 @@ module decode (
     //regfileの読み出しに時間がかかりすぎる場合、add add beqみたいな時だけ早期分岐をするようにするかも
 
     wire [31:0] rs1_early_branch = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
-                                   (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                                   (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data:
                                    (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
                                    (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
                                    (ID_EX_write_rw[1] == 1) ? write_reg_data:
                                    read_data1_pype;
 
     wire [31:0] rs2_early_branch = (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
-                                   (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data://この感じだとストールの入る場所によってはまずい可能性大
+                                   (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
                                    (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
                                    (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                                    (ID_EX_write_rw[0] == 1) ? write_reg_data:
                                    read_data2_pype;
 
-    wire is_branch = |MemBranch_pype;
+    wire is_branch = ((|MemBranch_pype) && (MemBranch_pype!= 3'b111));
 
 
     wire taken = (is_branch && !keep) ? (
@@ -178,6 +184,7 @@ module decode (
         ALU_control_pype <= 4'b0;
         funct3_pype1 <= 3'b0;
         is_csr_pype1 <= 1'b0;
+        csr_pype1 <= 32'b0;
 
 
         //data維持やex以降で用いるやつ0
@@ -200,6 +207,7 @@ module decode (
         ALU_control_pype <= 4'b0;
         funct3_pype1 <= 3'b0;
         is_csr_pype1 <= 1'b0;
+        csr_pype1 <= 12'b0;
 
 
         //data維持やex以降で用いるやつ0
@@ -210,7 +218,7 @@ module decode (
 
         //PCやALU_controlの維持
         PC_pype1 <= 32'b0;
-        PCp4_pype1 <= 32'b0;
+        PCp4_pype1 <= 12'b0;
     end
     
     // Stop(pause) CPU
@@ -224,6 +232,7 @@ module decode (
         ALU_control_pype <= ALU_control_pype;
         funct3_pype1 <= funct3_pype1;
         is_csr_pype1 <= is_csr_pype1;
+        csr_pype1 <= csr_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -378,6 +387,7 @@ module decode (
         PC_pype1 <= PC_pype0;
         PCp4_pype1 <= PCp4_pype0;
         is_csr_pype1 <= (opcode == 7'b1110011);
+        csr_pype1 <= csr;
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :

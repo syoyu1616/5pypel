@@ -3,10 +3,6 @@
 */
 
 `include "regfile.v"
-//`include "fetch.v" 
-//`include "decode.v" 
-//`include "execute.v"
-//`include "mem_access.v"
 `include "writeback.v"
 `include "noper.v"
 `include "csr_reg.v"
@@ -59,7 +55,6 @@ module core(
 //decode   
     wire [1:0] MemRW_pype1;
     wire [2:0] MemBranch_pype, ALU_Src_pype;
-    //wire [6:0] ALU_command_7;
     wire [31:0] read_data1, read_data2, read_data1_pype, read_data2_pype;
     wire [4:0] read_reg1, read_reg2;
     wire [31:0] PC_pype1, PCp4_pype1, Imm_pype;
@@ -87,8 +82,8 @@ module core(
     wire Regwrite;
 
 //csr_reg
-    wire csr_we, is_csr_pype1;
-    wire [11:0] csr_addr;
+    wire csr_we, is_csr_pype1, is_csr_pype2;
+    wire [11:0] csr_pype1, csr_pype2, csr_addr_r, csr_addr_w;
     wire [31:0] csr_wdata, csr_rdata, csr_mtvec, csr_mepc; 
 
 noper noper_unit (
@@ -197,6 +192,7 @@ noper noper_unit (
     .ALU_control_pype(ALU_control_pype), 
     .ALU_Src_pype(ALU_Src_pype),
     .is_csr_pype1(is_csr_pype1),
+    .csr_pype1(csr_pype1),
     .funct3_pype1(funct3_pype1),
     .branch_PC_early_contral(branch_PC_early_contral),
     .branch_PC_early(branch_PC_early));
@@ -223,6 +219,7 @@ noper noper_unit (
     .ALU_control_pype(ALU_control_pype),
     .ALU_Src_pype(ALU_Src_pype), 
     .is_csr_pype1(is_csr_pype1),
+    .csr_pype1(csr_pype1),
     .csr_rdata(csr_rdata),
     .csr_mtvec(csr_mtvec),
     .csr_mepc(csr_mepc),
@@ -239,8 +236,9 @@ noper noper_unit (
     .funct3_pype2(funct3_pype2),
     .branch_PC_contral(branch_PC_contral),
     .branch_PC(branch_PC),
-    .csr_we(csr_we),
-    .csr_addr(csr_addr)
+    .csr_addr_r(csr_addr_r),
+    .is_csr_pype2(is_csr_pype2),
+    .csr_pype2(csr_pype2)
     );
 
 
@@ -257,6 +255,8 @@ noper noper_unit (
     .dsize_pype2(dsize_pype2),
     .forwarding_stall_load_pyc_pype2(forwarding_stall_load_pyc_pype2),
     .funct3_pype2(funct3_pype2),
+    .is_csr_pype2(is_csr_pype2),
+    .csr_pype2(csr_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),
@@ -270,7 +270,10 @@ noper noper_unit (
     .WReg_pype3(WReg_pype3),
     .ALU_co_pype3(ALU_co_pype3), 
     .PCp4_pype3(PCp4_pype3), 
-    .mem_data_pype(mem_data_pype)
+    .mem_data_pype(mem_data_pype),
+    .csr_we(csr_we),
+    .csr_addr_w(csr_addr_w),
+    .csr_wdata(csr_wdata)
     );
 
     // inout信号をinput/output信号に分けて処理
@@ -299,7 +302,8 @@ noper noper_unit (
     csr_reg i_csr_reg(
     .clk(clk), .rst(rst), 
     .csr_we(csr_we),
-    .csr_addr(csr_addr),
+    .csr_addr_r(csr_addr_r),
+    .csr_addr_w(csr_addr_w),
     .csr_wdata(csr_wdata),
     .csr_rdata(csr_rdata),
     .csr_mtvec(csr_mtvec),

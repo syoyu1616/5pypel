@@ -26,13 +26,18 @@ module execute(
 
     //csr
     input is_csr_pype1,
-    output csr_we, //csrへのoutput
-    output [11:0] csr_addr,
-    output [31:0] csr_wdata,
+    input [11:0] csr_pype1,
 
-    input [31:0] csr_rdata,
+    output [11:0] csr_addr_r,
+ 
+    input [31:0] csr_rdata,//csrから読んだ奴ら
     input [31:0] csr_mtvec,
     input [31:0] csr_mepc,
+
+    output reg is_csr_pype2,
+    output reg [11:0] csr_pype2,
+    //書き込み内容はALU_co_pypeで送る
+
 
     //制御線
     input [2:0] writeback_control_pype1,
@@ -40,7 +45,6 @@ module execute(
     input [2:0] MemBranch_pype,
     input [3:0] ALU_control_pype,
     input [2:0] ALU_Src_pype,
-    //input [6:0] ALU_command_7,
     input [2:0] funct3_pype1,
 
     output reg [31:0] PCBranch_pype2,
@@ -60,14 +64,15 @@ module execute(
     output branch_PC_contral
 
 );
-    //assign csr_we = is_csr_pype1;
-    //assign csr_addr = Imm_pype[11:0];
+
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
         input signed [31:0] csr_rdata,
         input signed [31:0] imm,
+        input [31:0] PC_npw,
         input [2:0] funct3);
         case (funct3)
+            3'b000: csr_alu = PC_pype1; //ecall
             3'b001: csr_alu = rs1_val;                  // CSRRW
             3'b010: csr_alu = csr_rdata | rs1_val;      // CSRRS
             3'b011: csr_alu = csr_rdata & ~rs1_val;     // CSRRC
@@ -79,9 +84,7 @@ module execute(
     //rdataはcsr_regからassignでもらってくる
     wire is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
     wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h302);
-    assign csr_we = is_csr_pype1 | is_ecall;  // mretでは書き込まない
-    assign csr_addr = (is_ecall) ? 12'h342 : Imm_pype[11:0];  // mcause書き込み
-    assign csr_wdata = (is_ecall) ? 32'd11 : csr_alu(ALU_data1, csr_rdata, Imm_pype, funct3_pype1);
+    assign csr_addr_r = (is_ecall) ? 12'h342 : csr_pype1;
 
 
 
@@ -151,8 +154,8 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b111) ||
      (is_ecall) || (is_mret));                                             // JALR    
 
-assign branch_PC = //(is_ecall) ? csr_mtvec :
-                   //(is_mret)  ? csr_mepc :
+assign branch_PC = (is_ecall) ? csr_mtvec ://入ってるecallの番地
+                   (is_mret)  ? csr_mepc : //飛ぶ前のPC
                    PCBranch_pype2;
 
 
@@ -171,6 +174,8 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 1'b0;
         dsize_pype2 <= 2'b00;
         funct3_pype2 <= 3'b0;
+        is_csr_pype2 <= 1'b0;
+        csr_pype2 <= 12'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -183,6 +188,8 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         dsize_pype2 <= dsize_pype2;
         funct3_pype2 <= funct3_pype2;
+        is_csr_pype2 <= is_csr_pype2;
+        csr_pype2 <= csr_pype2;
 
     end else if (nop) begin
         PCBranch_pype2 <= 32'b0;
@@ -194,15 +201,17 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 1'b0;
         dsize_pype2 <= 2'b10;
         funct3_pype2 <= 3'b0;
+        is_csr_pype2 <= 1'b0;
+        csr_pype2 <= 12'b0;
 
     end
 
 
     else begin
 
-    case(csr_we)
+    case(is_csr_pype1)
         1'b1: begin
-            ALU_co_pype <= csr_alu(ALU_data1, csr_rdata, Imm_pype,funct3_pype1);
+            ALU_co_pype <= csr_alu(ALU_data1, csr_rdata, Imm_pype, PCp4_pype1, funct3_pype1);
         end
         default: begin
             ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
@@ -251,6 +260,8 @@ endcase
     writeback_control_pype2 <= writeback_control_pype1;
     MemBranch_pype2 <= MemBranch_pype;
     funct3_pype2 <= funct3_pype1;
+    is_csr_pype2 <= is_csr_pype1 | is_ecall;
+    csr_pype2 <= (is_ecall) ? 12'h341 : csr_pype1;
 
 end
 end

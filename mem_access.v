@@ -5,8 +5,6 @@ module mem_access(
     input keep, //nopとかのときに一緒に使うやつでpcの維持など
     input nop,
 
-    //input RegWrite_pype2,
-    //input [1:0] MemtoReg_pype2,
     input [2:0] writeback_control_pype2,
     input [1:0] MemRW_pype2,
 
@@ -20,6 +18,14 @@ module mem_access(
     input [1:0] forwarding_stall_load_pyc_pype2,
     output reg [1:0] forwarding_stall_load_pyc_pype3,
     input [1:0] dsize_pype2,
+
+    //csrへの書き込み
+    input is_csr_pype2,
+    input [11:0] csr_pype2,
+    
+    output csr_we,
+    output [11:0] csr_addr_w,
+    output [31:0] csr_wdata,
   
 
 
@@ -35,8 +41,6 @@ module mem_access(
     output [31:0] input_ddata,//cashから見てinput
     input [31:0] output_ddata,//cashから見てoutput
 
-    //output reg RegWrite_pype3,
-    //output reg [1:0] MemtoReg_pype3,
     output reg [2:0] writeback_control_pype3,
     output reg [4:0] WReg_pype3,
     output reg [31:0] ALU_co_pype3,
@@ -52,14 +56,16 @@ assign daddr     = ALU_co_pype;
 assign dsize     = dsize_pype2;
 assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
+assign csr_we = is_csr_pype2;
+assign csr_addr_w = csr_pype2;
+assign csr_wdata = ALU_co_pype;
+
                                                         
 
 //dready はop load  の時だけ止めさせるようにする
 always @(posedge clk or negedge rst) begin
 
   if (!rst) begin
-        //RegWrite_pype3 <= 1'b0;
-        //MemtoReg_pype3 <= 2'b0;
         writeback_control_pype3 <= 3'b0;
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
@@ -69,8 +75,6 @@ always @(posedge clk or negedge rst) begin
     end
 
     else if (keep) begin
-        //RegWrite_pype3 <= RegWrite_pype3;
-        //MemtoReg_pype3 <= MemtoReg_pype3;
         writeback_control_pype3 <= writeback_control_pype3;
         WReg_pype3 <= WReg_pype3;
         ALU_co_pype3 <= ALU_co_pype3;
@@ -81,8 +85,6 @@ always @(posedge clk or negedge rst) begin
     end
     
     else if (nop) begin
-        //RegWrite_pype3 <= 1'b0;
-        //MemtoReg_pype3 <= 2'b0;
         writeback_control_pype3 <= 3'b0;
         WReg_pype3 <= 5'b0;
         ALU_co_pype3 <= 32'b0;
@@ -94,8 +96,6 @@ always @(posedge clk or negedge rst) begin
 
     else begin //ここにelseないと通常の処理にならないよ！
     //横流し
-    //RegWrite_pype3 <= RegWrite_pype2;
-    //MemtoReg_pype3 <= MemtoReg_pype2;
     writeback_control_pype3 <= writeback_control_pype2;
     WReg_pype3 <= WReg_pype2;
     ALU_co_pype3 <= ALU_co_pype;
