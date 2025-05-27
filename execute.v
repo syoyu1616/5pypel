@@ -36,6 +36,8 @@ module execute(
 
     output reg is_csr_pype2,
     output reg [11:0] csr_pype2,
+    //output reg is_ecall_pype,
+    //output reg is_mret_pype,
     //書き込み内容はALU_co_pypeで送る
 
 
@@ -64,7 +66,8 @@ module execute(
     output branch_PC_contral
 
 );
-
+reg is_ecall_pype;
+reg is_mret_pype;
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
         input signed [31:0] csr_rdata,
@@ -84,7 +87,7 @@ module execute(
     //rdataはcsr_regからassignでもらってくる
     wire is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
     wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h302);
-    assign csr_addr_r = (is_ecall) ? 12'h342 : csr_pype1;
+    assign csr_addr_r = (is_ecall) ? 12'h305 : csr_pype1;
 
 
 
@@ -152,10 +155,10 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
      (MemBranch_pype2 == 3'b111) ||
-     (is_ecall) || (is_mret));                                             // JALR    
+     (is_ecall_pype) || (is_mret_pype));                                             // JALR    
 
-assign branch_PC = (is_ecall) ? csr_mtvec ://入ってるecallの番地
-                   (is_mret)  ? csr_mepc : //飛ぶ前のPC
+assign branch_PC = (is_ecall_pype) ? csr_mtvec ://入ってるecallの番地
+                   (is_mret_pype)  ? csr_mepc : //飛ぶ前のPC
                    PCBranch_pype2;
 
 
@@ -176,6 +179,8 @@ always @(posedge clk or negedge rst) begin
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
         csr_pype2 <= 12'b0;
+        is_ecall_pype <= 1'b0;
+        is_mret_pype <= 1'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -190,6 +195,8 @@ always @(posedge clk or negedge rst) begin
         funct3_pype2 <= funct3_pype2;
         is_csr_pype2 <= is_csr_pype2;
         csr_pype2 <= csr_pype2;
+        is_ecall_pype <= is_ecall_pype;
+        is_mret_pype <= is_mret_pype;
 
     end else if (nop) begin
         PCBranch_pype2 <= 32'b0;
@@ -203,6 +210,8 @@ always @(posedge clk or negedge rst) begin
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
         csr_pype2 <= 12'b0;
+        is_ecall_pype <= 1'b0;
+        is_mret_pype <= 1'b0;
 
     end
 
@@ -262,6 +271,8 @@ endcase
     funct3_pype2 <= funct3_pype1;
     is_csr_pype2 <= is_csr_pype1 | is_ecall;
     csr_pype2 <= (is_ecall) ? 12'h341 : csr_pype1;
+    is_ecall_pype <= is_ecall;
+    is_mret_pype <= is_mret;
 
 end
 end

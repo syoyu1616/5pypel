@@ -35,6 +35,7 @@ module core(
     //こいつを設定する必要あり
 
     assign iack_n = 1'b1;
+
   
     wire [4:0] WReg_pype;
     wire [2:0] writeback_control_pype1, writeback_control_pype2, writeback_control_pype3;
@@ -84,7 +85,10 @@ module core(
 //csr_reg
     wire csr_we, is_csr_pype1, is_csr_pype2;
     wire [11:0] csr_pype1, csr_pype2, csr_addr_r, csr_addr_w;
-    wire [31:0] csr_wdata, csr_rdata, csr_mtvec, csr_mepc; 
+    wire [31:0] csr_wdata;//, csr_rdata, csr_mtvec, csr_mepc; 
+    wire [31:0] csr_rdata = 32'b0; 
+    wire [31:0] csr_mtvec = 32'b0; 
+    wire [31:0] csr_mepc = 32'b0; 
 
 noper noper_unit (
     .clk(clk),
@@ -299,7 +303,7 @@ noper noper_unit (
     .in(write_reg_data),
     .out1(read_data1), .out2(read_data2));
 
-    csr_reg i_csr_reg(
+    /*csr_reg i_csr_reg(
     .clk(clk), .rst(rst), 
     .csr_we(csr_we),
     .csr_addr_r(csr_addr_r),
@@ -308,6 +312,6 @@ noper noper_unit (
     .csr_rdata(csr_rdata),
     .csr_mtvec(csr_mtvec),
     .csr_mepc(csr_mepc)
-    );
+    );*/
 
 endmodule
