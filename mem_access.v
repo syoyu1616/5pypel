@@ -22,6 +22,7 @@ module mem_access(
     //csrへの書き込み
     input is_csr_pype2,
     input [11:0] csr_pype2,
+    input [31:0] csr_wdata_pype2,
     
     output csr_we,
     output [11:0] csr_addr_w,
@@ -58,7 +59,7 @@ assign input_ddata = (MemRW_pype2[0]) ? read_data2_pype2: 32'bz;
 
 assign csr_we = is_csr_pype2;
 assign csr_addr_w = csr_pype2;
-assign csr_wdata = ALU_co_pype;
+assign csr_wdata = csr_wdata_pype2;
 
                                                         
 

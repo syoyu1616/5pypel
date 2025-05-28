@@ -36,6 +36,7 @@ module execute(
 
     output reg is_csr_pype2,
     output reg [11:0] csr_pype2,
+    output reg [31:0] csr_wdata_pype2,
     //output reg is_ecall_pype,
     //output reg is_mret_pype,
     //書き込み内容はALU_co_pypeで送る
@@ -84,10 +85,13 @@ reg is_mret_pype;
             3'b111: csr_alu = csr_rdata & ~imm;         // CSRRCI
         endcase
     endfunction
+
     //rdataはcsr_regからassignでもらってくる
     wire is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
     wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h302);
-    assign csr_addr_r = (is_ecall) ? 12'h305 : csr_pype1;
+    assign csr_addr_r = (is_ecall) ? 12'h305 :
+                        (is_mret) ? 12'h302 :
+                        csr_pype1;
 
 
 
@@ -157,8 +161,8 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b111) ||
      (is_ecall_pype) || (is_mret_pype));                                             // JALR    
 
-assign branch_PC = (is_ecall_pype) ? csr_mtvec ://入ってるecallの番地
-                   (is_mret_pype)  ? csr_mepc : //飛ぶ前のPC
+assign branch_PC = (is_ecall_pype) ? csr_rdata ://入ってるecallの番地
+                   (is_mret_pype)  ? csr_rdata : //飛ぶ前のPC
                    PCBranch_pype2;
 
 
@@ -218,14 +222,14 @@ always @(posedge clk or negedge rst) begin
 
     else begin
 
-    case(is_csr_pype1)
+    /*case(is_csr_pype1)
         1'b1: begin
             ALU_co_pype <= csr_alu(ALU_data1, csr_rdata, Imm_pype, PCp4_pype1, funct3_pype1);
         end
         default: begin
             ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
         end
-    endcase
+    endcase*/
 
 
     //ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
@@ -273,6 +277,8 @@ endcase
     csr_pype2 <= (is_ecall) ? 12'h341 : csr_pype1;
     is_ecall_pype <= is_ecall;
     is_mret_pype <= is_mret;
+    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata, Imm_pype, PCp4_pype1, funct3_pype1);
+    ALU_co_pype <= (is_csr_pype1) ? csr_rdata : alu(ALU_data1, ALU_data2, ALU_control_pype);
 
 end
 end

@@ -363,7 +363,11 @@ module decode (
 
             //例外処理 csr ecall mret
             7'b1110011: begin
+                if (funct3 == 3'b000)
+                writeback_control_pype1 <= 3'b000;
+                else
                 writeback_control_pype1 <= 3'b100;
+                
                 MemRW_pype1 <= 2'b00;
                 MemBranch_pype <= 3'b000;
                 ALU_Src_pype <= 3'b010;//専用のALUを使うが、read_data1は用いるので

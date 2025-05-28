@@ -85,10 +85,7 @@ module core(
 //csr_reg
     wire csr_we, is_csr_pype1, is_csr_pype2;
     wire [11:0] csr_pype1, csr_pype2, csr_addr_r, csr_addr_w;
-    wire [31:0] csr_wdata;//, csr_rdata, csr_mtvec, csr_mepc; 
-    wire [31:0] csr_rdata = 32'b0; 
-    wire [31:0] csr_mtvec = 32'b0; 
-    wire [31:0] csr_mepc = 32'b0; 
+    wire [31:0] csr_wdata, csr_wdata_pype2, csr_rdata; //, csr_mtvec, csr_mepc; 
 
 noper noper_unit (
     .clk(clk),
@@ -225,8 +222,8 @@ noper noper_unit (
     .is_csr_pype1(is_csr_pype1),
     .csr_pype1(csr_pype1),
     .csr_rdata(csr_rdata),
-    .csr_mtvec(csr_mtvec),
-    .csr_mepc(csr_mepc),
+    //.csr_mtvec(csr_mtvec),
+    //.csr_mepc(csr_mepc),
 
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
@@ -242,7 +239,8 @@ noper noper_unit (
     .branch_PC(branch_PC),
     .csr_addr_r(csr_addr_r),
     .is_csr_pype2(is_csr_pype2),
-    .csr_pype2(csr_pype2)
+    .csr_pype2(csr_pype2),
+    .csr_wdata_pype2(csr_wdata_pype2)
     );
 
 
@@ -261,6 +259,7 @@ noper noper_unit (
     .funct3_pype2(funct3_pype2),
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
+    .csr_wdata_pype2(csr_wdata_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),
@@ -303,15 +302,15 @@ noper noper_unit (
     .in(write_reg_data),
     .out1(read_data1), .out2(read_data2));
 
-    /*csr_reg i_csr_reg(
+    csr_reg i_csr_reg(
     .clk(clk), .rst(rst), 
     .csr_we(csr_we),
     .csr_addr_r(csr_addr_r),
     .csr_addr_w(csr_addr_w),
     .csr_wdata(csr_wdata),
-    .csr_rdata(csr_rdata),
-    .csr_mtvec(csr_mtvec),
-    .csr_mepc(csr_mepc)
-    );*/
+    .csr_rdata(csr_rdata)
+    //.csr_mtvec(csr_mtvec),
+    //.csr_mepc(csr_mepc)
+    );
 
 endmodule
