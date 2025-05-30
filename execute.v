@@ -27,19 +27,18 @@ module execute(
     //csr
     input is_csr_pype1,
     input [11:0] csr_pype1,
+    input is_ecall_pype1,
+    input is_mret_pype1,
+    input [31:0] csr_rdata_pype1,
 
-    output [11:0] csr_addr_r,
- 
-    input [31:0] csr_rdata,//csrから読んだ奴ら
-    input [31:0] csr_mtvec,
-    input [31:0] csr_mepc,
+    //output [11:0] csr_addr_r,
+    //input [31:0] csr_rdata,//csrから読んだ奴ら
+    //input [31:0] csr_mtvec,
+    //input [31:0] csr_mepc,
 
     output reg is_csr_pype2,
     output reg [11:0] csr_pype2,
     output reg [31:0] csr_wdata_pype2,
-    //output reg is_ecall_pype,
-    //output reg is_mret_pype,
-    //書き込み内容はALU_co_pypeで送る
 
 
     //制御線
@@ -64,19 +63,22 @@ module execute(
     output reg [2:0] funct3_pype2,
 
     output [31:0] branch_PC,
-    output branch_PC_contral
-
+    output branch_PC_contral,
+    output [31:0] csr_PC,
+    output csr_PC_contral
 );
 reg is_ecall_pype;
 reg is_mret_pype;
+reg [31:0] csr_rdata_pype2;
+  
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
         input signed [31:0] csr_rdata,
         input signed [31:0] imm,
-        input [31:0] PC_npw,
+        input [31:0] PC_now,
         input [2:0] funct3);
         case (funct3)
-            3'b000: csr_alu = PC_pype1; //ecall
+            3'b000: csr_alu = PC_now; //ecall
             3'b001: csr_alu = rs1_val;                  // CSRRW
             3'b010: csr_alu = csr_rdata | rs1_val;      // CSRRS
             3'b011: csr_alu = csr_rdata & ~rs1_val;     // CSRRC
@@ -87,13 +89,16 @@ reg is_mret_pype;
     endfunction
 
     //rdataはcsr_regからassignでもらってくる
-    wire is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
-    wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h302);
-    assign csr_addr_r = (is_ecall) ? 12'h305 :
-                        (is_mret) ? 12'h302 :
-                        csr_pype1;
+    //wire is_ecall = 1'b1;// = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
+    /*wire is_ecall;
+    assign is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && csr_pype1 == 12'h000) ? 1'b1 : 1'b0;//0にしたら動かなくなる
 
+    wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && csr_pype1 == 12'h302);
 
+    assign csr_addr_r = (is_ecall == 1'b1) ? 12'h305 ://mevec
+                        (is_mret == 1'b1) ? 12'h341 ://mepc
+                        (is_csr_pype1 == 1'b1) ? csr_pype1 :
+                        12'h301;*/
 
 
 
@@ -158,12 +163,14 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b011 && ALU_co_pype != 32'b0) ||             // BLT
      (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111) ||
-     (is_ecall_pype) || (is_mret_pype));                                             // JALR    
+     (MemBranch_pype2 == 3'b111));// ||
+     //(is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));                                             // JALR    
 
-assign branch_PC = (is_ecall_pype) ? csr_rdata ://入ってるecallの番地
-                   (is_mret_pype)  ? csr_rdata : //飛ぶ前のPC
-                   PCBranch_pype2;
+assign branch_PC = PCBranch_pype2;
+
+assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
+
+assign csr_PC = csr_rdata_pype2;
 
 
 
@@ -185,6 +192,7 @@ always @(posedge clk or negedge rst) begin
         csr_pype2 <= 12'b0;
         is_ecall_pype <= 1'b0;
         is_mret_pype <= 1'b0;
+        csr_rdata_pype2 <= 32'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -197,10 +205,16 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         dsize_pype2 <= dsize_pype2;
         funct3_pype2 <= funct3_pype2;
-        is_csr_pype2 <= is_csr_pype2;
+        /*is_csr_pype2 <= is_csr_pype2;
         csr_pype2 <= csr_pype2;
         is_ecall_pype <= is_ecall_pype;
         is_mret_pype <= is_mret_pype;
+        csr_rdata_pype2 <= csr_rdata_pype2;*/
+        is_csr_pype2 <= 1'b0;
+        csr_pype2 <= 12'b0;
+        is_ecall_pype <= 1'b0;
+        is_mret_pype <= 1'b0;
+        csr_rdata_pype2 <= 32'b0;
 
     end else if (nop) begin
         PCBranch_pype2 <= 32'b0;
@@ -216,23 +230,13 @@ always @(posedge clk or negedge rst) begin
         csr_pype2 <= 12'b0;
         is_ecall_pype <= 1'b0;
         is_mret_pype <= 1'b0;
+        csr_rdata_pype2 <= 32'b0;
 
     end
 
 
     else begin
 
-    /*case(is_csr_pype1)
-        1'b1: begin
-            ALU_co_pype <= csr_alu(ALU_data1, csr_rdata, Imm_pype, PCp4_pype1, funct3_pype1);
-        end
-        default: begin
-            ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
-        end
-    endcase*/
-
-
-    //ALU_co_pype <=  alu(ALU_data1, ALU_data2, ALU_control_pype);
     
     case(MemBranch_pype)
             3'b111: begin
@@ -273,12 +277,13 @@ endcase
     writeback_control_pype2 <= writeback_control_pype1;
     MemBranch_pype2 <= MemBranch_pype;
     funct3_pype2 <= funct3_pype1;
-    is_csr_pype2 <= is_csr_pype1 | is_ecall;
-    csr_pype2 <= (is_ecall) ? 12'h341 : csr_pype1;
-    is_ecall_pype <= is_ecall;
-    is_mret_pype <= is_mret;
-    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata, Imm_pype, PCp4_pype1, funct3_pype1);
-    ALU_co_pype <= (is_csr_pype1) ? csr_rdata : alu(ALU_data1, ALU_data2, ALU_control_pype);
+    csr_pype2 <= (is_ecall_pype1) ? 12'h341 : csr_pype1;
+    is_ecall_pype <= is_ecall_pype1;
+    is_mret_pype <= is_mret_pype1;
+    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata_pype1, Imm_pype, PCp4_pype1, funct3_pype1);
+    ALU_co_pype <= (is_csr_pype1 && !is_ecall_pype1) ? csr_rdata_pype1 : alu(ALU_data1, ALU_data2, ALU_control_pype);
+    is_csr_pype2 <= is_csr_pype1;
+    csr_rdata_pype2 <= csr_rdata_pype1;
 
 end
 end

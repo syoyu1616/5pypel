@@ -47,6 +47,11 @@ module decode (
     //csr
     output reg is_csr_pype1,
     output reg [11:0] csr_pype1,
+    output [11:0] csr_addr_r,
+    input [31:0] csr_rdata,
+    output reg is_ecall_pype1,
+    output reg is_mret_pype1,
+    output reg [31:0] csr_rdata_pype1,
 
     //制御線
     //executeで用いる
@@ -127,19 +132,30 @@ module decode (
     wire [31:0] imm;
     assign imm = immgen (Instraction_pype);
 
-    wire [2:0] funct3;
-
-
     wire [4:0] rd;
-    wire [11:0] csr = Instraction_pype[31:20];
+    wire [2:0] funct3;
 
     assign rd = Instraction_pype[11:7];
     assign funct3 = Instraction_pype[14:12];//14:12から変更 4/30
-
-
     
     assign read_reg1 = Instraction_pype[19:15];
     assign read_reg2 = Instraction_pype[24:20]; 
+
+
+ 
+    wire [11:0] csr = Instraction_pype[31:20];
+    
+    wire is_csr = (opcode == 7'b1110011);
+    wire is_ecall = (is_csr == 1'b1 && funct3 == 3'b000 && csr == 12'h000); //0にしたら動かなくなる
+    wire is_mret  = (is_csr == 1'b1 && funct3 == 3'b000 && csr == 12'h302);
+
+    assign csr_addr_r = (is_ecall == 1'b1) ? 12'h305 ://mevec
+                        (is_mret == 1'b1) ? 12'h341 ://mepc
+                        (is_csr == 1'b1) ? csr :
+                        12'h301;
+
+
+
 
     //regfileの読み出しに時間がかかるとして、フォワーディングの際も早期分岐を行うように設計する。
     //regfileの読み出しに時間がかかりすぎる場合、add add beqみたいな時だけ早期分岐をするようにするかも
@@ -185,6 +201,9 @@ module decode (
         funct3_pype1 <= 3'b0;
         is_csr_pype1 <= 1'b0;
         csr_pype1 <= 32'b0;
+        is_ecall_pype1 <= 1'b0;
+        is_mret_pype1 <= 1'b0;
+        csr_rdata_pype1 <= 32'b0;
 
 
         //data維持やex以降で用いるやつ0
@@ -208,7 +227,9 @@ module decode (
         funct3_pype1 <= 3'b0;
         is_csr_pype1 <= 1'b0;
         csr_pype1 <= 12'b0;
-
+        is_ecall_pype1 <= 1'b0;
+        is_mret_pype1 <= 1'b0;
+        csr_rdata_pype1 <= 32'b0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -233,6 +254,9 @@ module decode (
         funct3_pype1 <= funct3_pype1;
         is_csr_pype1 <= is_csr_pype1;
         csr_pype1 <= csr_pype1;
+        is_ecall_pype1 <= is_ecall_pype1;
+        is_mret_pype1 <= is_ecall_pype1;
+        csr_rdata_pype1 <= csr_rdata_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -390,59 +414,18 @@ module decode (
 
         PC_pype1 <= PC_pype0;
         PCp4_pype1 <= PCp4_pype0;
-        is_csr_pype1 <= (opcode == 7'b1110011);
-        csr_pype1 <= csr;
         read_data1_pype <= ((Regwrite == 0) && (ID_EX_write_rw[1] == 1)) ? write_reg_data :
                             read_data1;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2;
         funct3_pype1 <= funct3;
         ALU_control_pype <= alu_ctrl(Instraction_pype);
+        is_csr_pype1 <= is_csr;
+        csr_pype1 <= csr;
+        is_ecall_pype1 <= is_ecall;
+        is_mret_pype1 <= is_mret;
+        csr_rdata_pype1 <= csr_rdata;
     end
 end
 
 endmodule
-
-       // fence/fence.i
-            /*
-            7'b0001111: begin
-                mem_command <= 5'b0;
-                ex_command[5:3] <= 3'b110;
-                ex_command[2:0] <= funct3;
-                data_0 <= 32'b0;
-                data_1[31:12] <= 20'b0;
-                data_1[11:0] <= imm_I;
-                reg_d <= 5'b0;
-                mem_write_data <= 32'b0;
-            end
-            
-            // ecall/ebreak/csrrw/csrrs/csrrc/csrrsi/csrrci
-            7'b1110011: begin
-                mem_command[4:2] <= funct3;
-                mem_command[1:0] <= 2'b10;
-                ex_command[5:3] <= 3'b101;
-                ex_command[2:0] <= funct3;
-                if (funct3[2]) begin
-                    data_0[31:5] <= 27'b0;
-                    data_0[4:0] <= rs1;
-                end
-                else
-                    data_0 <= rs1_data;
-                data_1 <= 32'b0;
-                mem_write_data[31:12] <= 20'b0;
-                mem_write_data[11:0] <= imm_I;
-                reg_d <= rd;
-            end
-            */
-
-
-    /* ALUを普通に使う　（加算減算シフト論理演算）000
-       比較する 001
-       ALUを用いない（lui）010
-       jalとかの別枠 011
-       fence 100
-       ecall csw 100
-       ebreak 101   
-       mret 110
-       特権sfens sret 111
-    */

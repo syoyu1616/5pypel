@@ -85,7 +85,9 @@ module core(
 //csr_reg
     wire csr_we, is_csr_pype1, is_csr_pype2;
     wire [11:0] csr_pype1, csr_pype2, csr_addr_r, csr_addr_w;
-    wire [31:0] csr_wdata, csr_wdata_pype2, csr_rdata; //, csr_mtvec, csr_mepc; 
+    wire [31:0] csr_wdata, csr_wdata_pype2, csr_rdata, csr_rdata_pype1; //, csr_mtvec, csr_mepc; 
+    wire csr_PC_contral;
+    wire [31:0] csr_PC;
 
 noper noper_unit (
     .clk(clk),
@@ -107,6 +109,7 @@ noper noper_unit (
     // 分岐成立
     .branch_PC_contral (branch_PC_contral),
     .branch_PC_early_contral (branch_PC_early_contral),
+    .csr_PC_contral(csr_PC_contral),
 
     //forwarding
     .ALU_co_pype(ALU_co_pype),
@@ -150,6 +153,10 @@ noper noper_unit (
     .branch_PC_contral(branch_PC_contral), 
     .branch_PC_early(branch_PC_early), 
     .branch_PC(branch_PC), 
+    .csr_PC_contral(csr_PC_contral),
+    .csr_PC(csr_PC),
+
+
     .idata(idata), 
     .iaddr(iaddr), 
     .Instraction_pype(Instraction_pype), 
@@ -182,6 +189,7 @@ noper noper_unit (
     .forwarding_ID_MEM_data(forwarding_ID_MEM_data),
     .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
+    .csr_rdata(csr_rdata),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
@@ -194,6 +202,10 @@ noper noper_unit (
     .ALU_Src_pype(ALU_Src_pype),
     .is_csr_pype1(is_csr_pype1),
     .csr_pype1(csr_pype1),
+    .is_ecall_pype1(is_ecall_pype1),
+    .is_mret_pype1(is_mret_pype1),
+    .csr_addr_r(csr_addr_r),
+    .csr_rdata_pype1(csr_rdata_pype1),
     .funct3_pype1(funct3_pype1),
     .branch_PC_early_contral(branch_PC_early_contral),
     .branch_PC_early(branch_PC_early));
@@ -221,7 +233,11 @@ noper noper_unit (
     .ALU_Src_pype(ALU_Src_pype), 
     .is_csr_pype1(is_csr_pype1),
     .csr_pype1(csr_pype1),
-    .csr_rdata(csr_rdata),
+    .is_ecall_pype1(is_ecall_pype1),
+    .is_mret_pype1(is_mret_pype1),
+    .csr_rdata_pype1(csr_rdata_pype1),
+    //.csr_rdata(csr_rdata),
+
     //.csr_mtvec(csr_mtvec),
     //.csr_mepc(csr_mepc),
 
@@ -237,7 +253,9 @@ noper noper_unit (
     .funct3_pype2(funct3_pype2),
     .branch_PC_contral(branch_PC_contral),
     .branch_PC(branch_PC),
-    .csr_addr_r(csr_addr_r),
+    .csr_PC_contral(csr_PC_contral),
+    .csr_PC(csr_PC),
+    //.csr_addr_r(csr_addr_r),
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
     .csr_wdata_pype2(csr_wdata_pype2)

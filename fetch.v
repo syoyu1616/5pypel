@@ -14,6 +14,8 @@ module fetch (
     input branch_PC_contral,
     input [31:0] branch_PC_early,
     input [31:0] branch_PC,
+    input csr_PC_contral,
+    input [31:0] csr_PC,
 
     input [31:0] idata, //instractionのInstraction memoryからのinput
 
@@ -36,12 +38,12 @@ reg [31:0] next_PCp4_pype0;
 
 always @(posedge clk or negedge rst) begin
     if (!rst) begin
-        next_iaddr = 32'h0001_0000;
+        /*next_iaddr = 32'h0001_0000;
         next_PC_pype0 = 32'h0001_0000;
-        next_PCp4_pype0 = 32'h0001_0004;
-        /*next_iaddr = 32'h0000_0000;
-        next_PC_pype0 = 32'h0000_0000;
-        next_PCp4_pype0 = 32'h0000_0000;*/
+        next_PCp4_pype0 = 32'h0001_0004;*/
+        next_iaddr = 32'h0001_0060;
+        next_PC_pype0 = 32'h0001_0060;
+        next_PCp4_pype0 = 32'h0001_0064;
         iaddr <= next_iaddr;
         PC_pype0 <= next_PC_pype0;
         PCp4_pype0 <= next_PCp4_pype0;
@@ -65,11 +67,19 @@ always @(posedge clk or negedge rst) begin
             PCp4_pype0 <= next_PCp4_pype0;
         end
 
-        
         else if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;
             next_PC_pype0 = branch_PC_early;
             next_PCp4_pype0 = branch_PC_early + 32'd4;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
+        end
+
+        else if (csr_PC_contral) begin
+            next_iaddr = csr_PC;
+            next_PC_pype0 = csr_PC;
+            next_PCp4_pype0 = csr_PC + 32'd4;
             iaddr <= next_iaddr;
             PC_pype0 <= next_PC_pype0;
             PCp4_pype0 <= next_PCp4_pype0;
@@ -91,12 +101,23 @@ always @(posedge clk or negedge rst) begin
             iaddr <= next_iaddr;
             PC_pype0 <= next_PC_pype0;
             PCp4_pype0 <= next_PCp4_pype0;
-        end else if (branch_PC_early_contral) begin
+        end
+        
+        else if (branch_PC_early_contral) begin
             next_iaddr = branch_PC_early;
             iaddr <= next_iaddr;
             PC_pype0 <= next_PC_pype0;
             PCp4_pype0 <= next_PCp4_pype0;
-        end else begin
+        end 
+
+        else if (csr_PC_contral) begin
+            next_iaddr = csr_PC;
+            iaddr <= next_iaddr;
+            PC_pype0 <= next_PC_pype0;
+            PCp4_pype0 <= next_PCp4_pype0;
+        end 
+
+        else begin
             next_iaddr = iaddr + 32'd4;
             next_PC_pype0 = next_iaddr;
             next_PCp4_pype0 = next_iaddr + 32'd4;
