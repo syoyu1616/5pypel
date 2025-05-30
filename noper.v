@@ -97,23 +97,23 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
         //hazard発生は前側の命令がloadの時だけ（opcode_pype == 7'b0000011）
         //read_data_pypeに書き込むのは
         
-        hazard_pype1 <= /*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0) && 
+        hazard_pype1 <= writeback_control_pype1[2] && (WReg_pype != 0) && 
                         ((WReg_pype == fornop_register1_pype) || (WReg_pype == fornop_register2_pype)) && 
                         (MemRW_pype1[1] == 1'b1);
 
 
-        if ((/*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] != 1'b1)) 
+        if ((writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] != 1'b1)) 
             forwarding_ID_EX_pyc <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
             forwarding_ID_EX_pyc <= 2'b0;
 
-        if (/*RegWrite_pype2*/ writeback_control_pype2[2] && (WReg_pype2 != 0)) //二つ離れてたら大丈夫！！
+        if (writeback_control_pype2[2] && (WReg_pype2 != 0)) //二つ離れてたら大丈夫！！
             forwarding_ID_MEM_pyc <= {(WReg_pype2 == fornop_register1_pype), (WReg_pype2 == fornop_register2_pype)};
         else
             forwarding_ID_MEM_pyc <= 2'b0;
 
 
-        if ((/*RegWrite_pype1*/ writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] == 1'b1)) 
+        if ((writeback_control_pype1[2] && (WReg_pype != 0)) && (MemRW_pype1[1] == 1'b1)) 
             forwarding_stall_load_pyc_pype2 <= {(WReg_pype == fornop_register1_pype), (WReg_pype == fornop_register2_pype)};
         else
             forwarding_stall_load_pyc_pype2 <= 2'b0;

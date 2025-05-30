@@ -38,12 +38,12 @@ reg [31:0] next_PCp4_pype0;
 
 always @(posedge clk or negedge rst) begin
     if (!rst) begin
-        /*next_iaddr = 32'h0001_0000;
+        next_iaddr = 32'h0001_0000;
         next_PC_pype0 = 32'h0001_0000;
-        next_PCp4_pype0 = 32'h0001_0004;*/
-        next_iaddr = 32'h0001_0060;
+        next_PCp4_pype0 = 32'h0001_0004;
+        /*next_iaddr = 32'h0001_0060;
         next_PC_pype0 = 32'h0001_0060;
-        next_PCp4_pype0 = 32'h0001_0064;
+        next_PCp4_pype0 = 32'h0001_0064;*/
         iaddr <= next_iaddr;
         PC_pype0 <= next_PC_pype0;
         PCp4_pype0 <= next_PCp4_pype0;

@@ -163,10 +163,11 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b011 && ALU_co_pype != 32'b0) ||             // BLT
      (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111));// ||
-     //(is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));                                             // JALR    
+     (MemBranch_pype2 == 3'b111) ||
+     (MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||
+     (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0));
 
-assign branch_PC = PCBranch_pype2;
+assign branch_PC = (PCBranch_pype2[1:0] != 00) ? 0: PCBranch_pype2;//戻り先を書かなきゃね
 
 assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
 
@@ -246,6 +247,10 @@ always @(posedge clk or negedge rst) begin
             PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
             end
             default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
+
+        //ifをつければPCBranch_pype2を参照できますか
+        if (PCBranch_pype2)...
+            
     endcase
 
 
@@ -280,7 +285,7 @@ endcase
     csr_pype2 <= (is_ecall_pype1) ? 12'h341 : csr_pype1;
     is_ecall_pype <= is_ecall_pype1;
     is_mret_pype <= is_mret_pype1;
-    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata_pype1, Imm_pype, PCp4_pype1, funct3_pype1);
+    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata_pype1, Imm_pype, PC_pype1, funct3_pype1);
     ALU_co_pype <= (is_csr_pype1 && !is_ecall_pype1) ? csr_rdata_pype1 : alu(ALU_data1, ALU_data2, ALU_control_pype);
     is_csr_pype2 <= is_csr_pype1;
     csr_rdata_pype2 <= csr_rdata_pype1;

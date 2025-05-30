@@ -190,6 +190,7 @@ noper noper_unit (
     .forwarding_load_data(forwarding_load_data),
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
     .csr_rdata(csr_rdata),
+    .MemRW_pype2(MemRW_pype2),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 

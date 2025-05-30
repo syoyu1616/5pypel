@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Fri May 30 04:06:37 2025
+[*] Fri May 30 08:17:02 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Fri May 30 04:04:11 2025"
-[dumpfile_size] 3814578
+[dumpfile_mtime] "Fri May 30 08:10:55 2025"
+[dumpfile_size] 170108375
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 1045230
+[timestart] 488702000
 [size] 2160 1321
 [pos] -27 -24
-*-13.000000 1078810 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-20.000000 493930000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
@@ -19,8 +19,44 @@
 [sst_vpaned_height] 885
 @28
 top_test.i_top.i_core.i_csr_reg.clk
-@22
+@c00023
 top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@28
+(0)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(1)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(2)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(3)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(4)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(5)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(6)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(7)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(8)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(9)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(10)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(11)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(12)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(13)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(14)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(15)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(16)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(17)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(18)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(19)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(20)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(21)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(22)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(23)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(24)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(25)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(26)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(27)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(28)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(29)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(30)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+(31)top_test.i_top.i_core.i_fetch.iaddr[31:0]
+@1401201
+-group_end
+@22
 top_test.i_top.i_core.i_fetch.idata[31:0]
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 @28
@@ -88,8 +124,6 @@ top_test.i_top.i_core.i_csr_reg.csr_rdata[31:0]
 (31)top_test.i_top.i_core.i_csr_reg.csr_rdata[31:0]
 @1401200
 -group_end
-@29
-top_test.i_top.i_core.i_execute.csr_rdata_pype1
 @22
 top_test.i_top.i_core.i_execute.csr_rdata_pype2[31:0]
 top_test.i_top.i_core.i_fetch.csr_PC[31:0]

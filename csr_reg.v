@@ -32,6 +32,7 @@ module csr_reg (
             csr_regs[12'h300] <= 32'h0000_1800; // mstatus の初期値
             csr_regs[12'h301] <= 32'h4000_0000;
             csr_regs[12'h305] <= 32'h0000_0170; // 例: mtvec 初期値
+        
             //csr_regs[12'h342] <= 32'h0; 
 
         end else if (csr_we) begin

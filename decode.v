@@ -31,6 +31,7 @@ module decode (
     input [31:0] forwarding_load_data,
     input [31:0] forwarding_ID_MEM_hazard_data,
 
+    input [1:0] MemRW_pype2,
     output branch_PC_early_contral,
     output [31:0] branch_PC_early,
 
@@ -177,13 +178,13 @@ module decode (
     wire is_branch = ((|MemBranch_pype) && (MemBranch_pype!= 3'b111));
 
 
-    wire taken = (is_branch && !keep) ? (
+    wire taken = (is_branch) ? (
                 (funct3_pype1 == 3'b000) ? (rs1_early_branch ^ rs2_early_branch) == 32'b0 :
                 (funct3_pype1 == 3'b001) ? (rs1_early_branch ^ rs2_early_branch) != 32'b0 :
                 1'b0
             ) : 1'b0;
 
-    assign branch_PC_early_contral = taken;
+    assign branch_PC_early_contral = 0;//(keep == 1) ? 0: taken;
     assign branch_PC_early = PC_pype1 + Imm_pype;
 
 
