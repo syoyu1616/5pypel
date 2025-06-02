@@ -90,20 +90,6 @@ reg [31:0] next_PCBranch_pype2;
         endcase
     endfunction
 
-    //rdataはcsr_regからassignでもらってくる
-    //wire is_ecall = 1'b1;// = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && Imm_pype[11:0] == 12'h000);
-    /*wire is_ecall;
-    assign is_ecall = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && csr_pype1 == 12'h000) ? 1'b1 : 1'b0;//0にしたら動かなくなる
-
-    wire is_mret  = (is_csr_pype1 == 1'b1 && funct3_pype1 == 3'b000 && csr_pype1 == 12'h302);
-
-    assign csr_addr_r = (is_ecall == 1'b1) ? 12'h305 ://mevec
-                        (is_mret == 1'b1) ? 12'h341 ://mepc
-                        (is_csr_pype1 == 1'b1) ? csr_pype1 :
-                        12'h301;*/
-
-
-
     //alu: ALU
     function signed [31:0] alu(
         input signed [31:0] a, 

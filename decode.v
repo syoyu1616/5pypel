@@ -175,16 +175,17 @@ module decode (
                                    (ID_EX_write_rw[0] == 1) ? write_reg_data:
                                    read_data2_pype;
 
+    //この計算の感じで分岐予測のためのPCの値を算出するかも(加算器だけ残す?)
     wire is_branch = ((|MemBranch_pype) && (MemBranch_pype!= 3'b111));
 
 
-    wire taken = (is_branch) ? (
+    wire taken = (is_branch && !keep) ? (
                 (funct3_pype1 == 3'b000) ? (rs1_early_branch ^ rs2_early_branch) == 32'b0 :
                 (funct3_pype1 == 3'b001) ? (rs1_early_branch ^ rs2_early_branch) != 32'b0 :
                 1'b0
             ) : 1'b0;
 
-    assign branch_PC_early_contral = 0;//(keep == 1) ? 0: taken;
+    assign branch_PC_early_contral = 0;//taken;//0にしないとcsr動かない
     assign branch_PC_early = PC_pype1 + Imm_pype;
 
 

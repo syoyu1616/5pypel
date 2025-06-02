@@ -126,8 +126,5 @@ always @(posedge clk or negedge rst) begin
             PCp4_pype0 <= next_PCp4_pype0;
         end
     end
- 
-
 end
-
 endmodule
