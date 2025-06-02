@@ -88,6 +88,7 @@ module core(
     wire [31:0] csr_wdata, csr_wdata_pype2, csr_rdata, csr_rdata_pype1; //, csr_mtvec, csr_mepc; 
     wire csr_PC_contral;
     wire [31:0] csr_PC;
+    wire is_epc, is_ePC_pype2;
 
 noper noper_unit (
     .clk(clk),
@@ -156,7 +157,6 @@ noper noper_unit (
     .csr_PC_contral(csr_PC_contral),
     .csr_PC(csr_PC),
 
-
     .idata(idata), 
     .iaddr(iaddr), 
     .Instraction_pype(Instraction_pype), 
@@ -164,7 +164,6 @@ noper noper_unit (
     .PCp4_pype0(PCp4_pype0),
     .fornop_register1_pype(fornop_register1_pype), 
     .fornop_register2_pype(fornop_register2_pype));
-
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
     .PC_pype0(PC_pype0), 
@@ -259,7 +258,8 @@ noper noper_unit (
     //.csr_addr_r(csr_addr_r),
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
-    .csr_wdata_pype2(csr_wdata_pype2)
+    .csr_wdata_pype2(csr_wdata_pype2),
+    .is_ePC_pype2(is_ePC_pype2)
     );
 
 
@@ -279,6 +279,7 @@ noper noper_unit (
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
     .csr_wdata_pype2(csr_wdata_pype2),
+    .is_ePC_pype2(is_ePC_pype2),
 
     .forwarding_stall_load_pyc_pype3(forwarding_stall_load_pyc_pype3),
     .output_ddata(output_ddata),
@@ -295,7 +296,8 @@ noper noper_unit (
     .mem_data_pype(mem_data_pype),
     .csr_we(csr_we),
     .csr_addr_w(csr_addr_w),
-    .csr_wdata(csr_wdata)
+    .csr_wdata(csr_wdata),
+    .is_epc(is_epc)
     );
 
     // inout信号をinput/output信号に分けて処理

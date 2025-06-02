@@ -130,7 +130,7 @@ end else if (!mem_ac_stall) begin //lwの時とそれ以外で分ける必要あ
 end
 
 
-assign ID_EX_write_rw = (/*RegWrite_pype3*/ writeback_control_pype3[2] && (WReg_pype3 != 0)) ?
+assign ID_EX_write_rw = (writeback_control_pype3[2] && (WReg_pype3 != 0)) ?
     {(WReg_pype3 == fornop_register1_pype), (WReg_pype3 == fornop_register2_pype)} : 2'b00;
 
 

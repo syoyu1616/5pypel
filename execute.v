@@ -39,6 +39,7 @@ module execute(
     output reg is_csr_pype2,
     output reg [11:0] csr_pype2,
     output reg [31:0] csr_wdata_pype2,
+    output reg is_ePC_pype2,
 
 
     //制御線
@@ -70,6 +71,7 @@ module execute(
 reg is_ecall_pype;
 reg is_mret_pype;
 reg [31:0] csr_rdata_pype2;
+reg [31:0] next_PCBranch_pype2;
   
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
@@ -167,7 +169,7 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||
      (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0));
 
-assign branch_PC = (PCBranch_pype2[1:0] != 00) ? 0: PCBranch_pype2;//戻り先を書かなきゃね
+assign branch_PC = PCBranch_pype2;//戻り先を書かなきゃね
 
 assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
 
@@ -180,13 +182,12 @@ always @(posedge clk or negedge rst) begin
 //nopが上だとkeepが割り込んできたときのID/EX_write_pypeが上手くいかない
     if (!rst) begin
         ALU_co_pype <= 32'b0;
-        PCBranch_pype2 <= 32'b0;
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
-        MemBranch_pype2 <= 1'b0;
+        next_PCBranch_pype2 <= 1'b0;
         dsize_pype2 <= 2'b00;
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
@@ -194,37 +195,40 @@ always @(posedge clk or negedge rst) begin
         is_ecall_pype <= 1'b0;
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
+        is_ePC_pype2 <= 1'b0;
+        MemBranch_pype2 <= 3'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
-        PCBranch_pype2 <= PCBranch_pype2;
+
         read_data2_pype2 <= read_data2_pype2;
         PCp4_pype2 <= PCp4_pype2;
         WReg_pype2 <= WReg_pype2;
         writeback_control_pype2 <= writeback_control_pype2;
         MemRW_pype2 <= MemRW_pype2;
-        MemBranch_pype2 <= MemBranch_pype2;
+        next_PCBranch_pype2 <= next_PCBranch_pype2;
         dsize_pype2 <= dsize_pype2;
         funct3_pype2 <= funct3_pype2;
-        /*is_csr_pype2 <= is_csr_pype2;
+        is_csr_pype2 <= is_csr_pype2;
         csr_pype2 <= csr_pype2;
         is_ecall_pype <= is_ecall_pype;
         is_mret_pype <= is_mret_pype;
-        csr_rdata_pype2 <= csr_rdata_pype2;*/
+        csr_rdata_pype2 <= csr_rdata_pype2;
         is_csr_pype2 <= 1'b0;
         csr_pype2 <= 12'b0;
         is_ecall_pype <= 1'b0;
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
+        MemBranch_pype2 <= MemBranch_pype2;
 
     end else if (nop) begin
-        PCBranch_pype2 <= 32'b0;
+
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
-        MemBranch_pype2 <= 1'b0;
+        next_PCBranch_pype2 <= 1'b0;
         dsize_pype2 <= 2'b10;
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
@@ -232,6 +236,7 @@ always @(posedge clk or negedge rst) begin
         is_ecall_pype <= 1'b0;
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
+        MemBranch_pype2 <= 3'b0;
 
     end
 
@@ -242,17 +247,29 @@ always @(posedge clk or negedge rst) begin
     case(MemBranch_pype)
             3'b111: begin
             if (ALU_Src_pype[1])
-            PCBranch_pype2 <= (read_data1_effetive + $signed(Imm_pype)) & 32'hffff_fffe;
+            next_PCBranch_pype2 = (read_data1_effetive + $signed(Imm_pype)) & 32'hffff_fffe;
             else
-            PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
+            next_PCBranch_pype2 = PC_pype1 + $signed(Imm_pype);
             end
-            default: PCBranch_pype2 <= PC_pype1 + $signed(Imm_pype);
-
-        //ifをつければPCBranch_pype2を参照できますか
-        if (PCBranch_pype2)...
+            default: next_PCBranch_pype2 = PC_pype1 + $signed(Imm_pype);
             
     endcase
 
+        //例外PCについて
+        if (next_PCBranch_pype2[1:0] !=2'b00 && MemBranch_pype != 3'b000) begin //ストールの入り方によってはめちゃくちゃバグりそう
+            PCBranch_pype2 <= 32'b0;
+            is_csr_pype2 <= 1'b1;
+            csr_pype2 <= 12'h341;
+            csr_wdata_pype2 <= PC_pype1;
+            is_ePC_pype2 <= 1'b1;
+        end
+        else begin
+            PCBranch_pype2 <= next_PCBranch_pype2;
+            is_csr_pype2 <= is_csr_pype1;
+            csr_pype2 <= (is_ecall_pype1) ? 12'h341 : csr_pype1;
+            csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata_pype1, Imm_pype, PC_pype1, funct3_pype1);
+            is_ePC_pype2 <= 1'b0;
+        end
 
     case(MemRW_pype1[0])
         1'b1: begin
@@ -282,90 +299,12 @@ endcase
     writeback_control_pype2 <= writeback_control_pype1;
     MemBranch_pype2 <= MemBranch_pype;
     funct3_pype2 <= funct3_pype1;
-    csr_pype2 <= (is_ecall_pype1) ? 12'h341 : csr_pype1;
     is_ecall_pype <= is_ecall_pype1;
     is_mret_pype <= is_mret_pype1;
-    csr_wdata_pype2 <= csr_alu(ALU_data1, csr_rdata_pype1, Imm_pype, PC_pype1, funct3_pype1);
     ALU_co_pype <= (is_csr_pype1 && !is_ecall_pype1) ? csr_rdata_pype1 : alu(ALU_data1, ALU_data2, ALU_control_pype);
-    is_csr_pype2 <= is_csr_pype1;
     csr_rdata_pype2 <= csr_rdata_pype1;
 
 end
 end
 endmodule
 
-
-
-//reg [1:0] branch, //分岐の成立を教える ＝ 00, ￢＝ 01 未満 10 以上 11 Membranchと一致してたら分岐や！(ALUから出るので分岐)
- //ALU_control_pype,for_ALU_cを基にしてALUへ渡しちゃう
-//4/18 exelを用いてALU_controlを制御するところから
-//演算形式は3'b  
-
-/*reg [3:0] ALU_control;
-
-always @(*) begin
-    case (ALU_control_pype)
-        `ALU_co_pype_normal: begin
-            case (for_ALU_c)
-                `ALU_ADD:  ALU_control = `ALU_ADD;
-                `ALU_SUB:  ALU_control = `ALU_SUB;
-                `ALU_AND: ALU_control = `ALU_AND;
-                `ALU_OR: ALU_control = `ALU_OR;
-                `ALU_XOR: ALU_control = `ALU_XOR;
-                `ALU_SLL: ALU_control = `ALU_SLL;
-                `ALU_SRL: ALU_control = `ALU_SRL;
-                `ALU_SRA: ALU_control = `ALU_SRA;
-                `ALU_SLT: ALU_control = `ALU_SLT;
-                `ALU_SLTU: ALU_control = `ALU_SLTU;
-                default:   ALU_control = 4'b0000;
-            endcase
-        end
-
-        `ALU_co_pype_coo: begin
-            case (for_ALU_c)
-                `ALU_BEQ, `ALU_BNE:  ALU_control = `ALU_SUB;
-                `ALU_BLT, `ALU_BGE:  ALU_control = `ALU_SLT;
-                `ALU_BLTU, `ALU_BGEU: ALU_control = `ALU_SLTU;
-                default:   ALU_control = 4'b0000;
-            endcase
-        end
-
-        `ALU_co_pype_j: begin
-            case (for_ALU_c)
-                `ALU_JAL:   ALU_control = `ALU_ADD;
-                `ALU_JALR:  ALU_control = `ALU_c_JALR;
-                default:    ALU_control = 4'b0000;
-            endcase
-        end
-
-        default: ALU_control = 4'b0000;
-    endcase
-end
-*/
-
-
-
-   /*reg [31:0] sum;
-        reg carry;
-        integer i;
-        reg signed [31:0] b_sub;
-        begin
-        sum = 0;
-        carry = 0;
-
-        case (ctrl)
-            `ALU_ADD: begin
-                for (i = 0; i < 32; i = i + 4) begin
-                    {carry, sum[i +: 4]} = a[i +: 4] + b[i +: 4] + carry;
-                end
-                alu = sum;
-            end
-
-            `ALU_SUB: begin
-                b_sub = ~b + 1; // 2の補数での減算
-                carry = 0;
-                for (i = 0; i < 32; i = i + 4) begin
-                    {carry, sum[i +: 4]} = a[i +: 4] + b_sub[i +: 4] + carry;
-                end
-                alu = sum;
-            end*/

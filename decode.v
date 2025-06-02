@@ -201,7 +201,7 @@ module decode (
         ALU_control_pype <= 4'b0;
         funct3_pype1 <= 3'b0;
         is_csr_pype1 <= 1'b0;
-        csr_pype1 <= 32'b0;
+        csr_pype1 <= 12'b0;
         is_ecall_pype1 <= 1'b0;
         is_mret_pype1 <= 1'b0;
         csr_rdata_pype1 <= 32'b0;

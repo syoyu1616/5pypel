@@ -10,6 +10,7 @@ module csr_reg (
     input [11:0] csr_addr_w, 
     input [11:0] csr_addr_r,    // CSR アドレス
     input [31:0] csr_wdata,        // 書き込みデータ
+    input is_epc,
     output [31:0] csr_rdata       // 読み出しデータ
 
 );
@@ -31,20 +32,20 @@ module csr_reg (
             end
             csr_regs[12'h300] <= 32'h0000_1800; // mstatus の初期値
             csr_regs[12'h301] <= 32'h4000_0000;
+            
             csr_regs[12'h305] <= 32'h0000_0170; // 例: mtvec 初期値
-        
+            //341 mepc
             //csr_regs[12'h342] <= 32'h0; 
 
         end else if (csr_we) begin
-
-            if (csr_addr_w == 12'h301) begin
+            if (is_epc) begin
+            csr_regs[12'h342] <= 32'h0000_0001;
             end
-            else begin
             csr_regs[csr_addr_w] <= csr_wdata;
         end
         
     end
-    end
+    
 
 endmodule
 `endif
