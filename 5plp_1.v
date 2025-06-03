@@ -6,6 +6,8 @@
 `include "writeback.v"
 `include "noper.v"
 `include "csr_reg.v"
+`include "BHT.v"
+`include "BTB.v"
 
 //opコードなんかの定義を事前にここで行ってる
 
@@ -90,6 +92,12 @@ module core(
     wire [31:0] csr_PC;
     wire is_epc, is_ePC_pype2;
 
+//分岐予測
+    wire [31:0] lookup_PC, PC_pype2, BTB_PC, branch_BTB_PC;
+    wire branch_BTB_contral, is_branch_pype2, predict_taken, BTB_hit;
+    wire [31:0] branch_miss_PC;
+    wire branch_miss_contral;
+
 noper noper_unit (
     .clk(clk),
     .rst(rst),
@@ -108,9 +116,10 @@ noper noper_unit (
     .ID_EX_write_rw  (ID_EX_write_rw),
 
     // 分岐成立
-    .branch_PC_contral (branch_PC_contral),
-    .branch_PC_early_contral (branch_PC_early_contral),
-    .csr_PC_contral(csr_PC_contral),
+    //.branch_PC_contral (branch_PC_contral),
+    //.branch_PC_early_contral (branch_PC_early_contral),
+    //.csr_PC_contral(csr_PC_contral),
+    .branch_miss_contral(branch_miss_contral),
 
     //forwarding
     .ALU_co_pype(ALU_co_pype),
@@ -150,20 +159,28 @@ noper noper_unit (
 );
 
     fetch i_fetch(.clk(clk), .rst(rst), .keep(stall_IF), .nop(nop_IF), 
-    .branch_PC_early_contral(branch_PC_early_contral), 
-    .branch_PC_contral(branch_PC_contral), 
-    .branch_PC_early(branch_PC_early), 
-    .branch_PC(branch_PC), 
-    .csr_PC_contral(csr_PC_contral),
-    .csr_PC(csr_PC),
-
+    //.branch_PC_early_contral(branch_PC_early_contral), 
+    //.branch_PC_contral(branch_PC_contral), 
+    //.branch_PC_early(branch_PC_early), 
+    //.branch_PC(branch_PC), 
+    //.csr_PC_contral(csr_PC_contral),
+    //.csr_PC(csr_PC),
+    .branch_miss_contral(branch_miss_contral),
+    .branch_miss_PC(branch_miss_PC),
+    .is_branch_predict(predict_taken),
+    .BTB_hit(BTB_hit),
+    .BTB_PC(BTB_PC),
     .idata(idata), 
+
     .iaddr(iaddr), 
     .Instraction_pype(Instraction_pype), 
     .PC_pype0(PC_pype0), 
     .PCp4_pype0(PCp4_pype0),
     .fornop_register1_pype(fornop_register1_pype), 
-    .fornop_register2_pype(fornop_register2_pype));
+    .fornop_register2_pype(fornop_register2_pype),
+    .is_branch_predict_pype0(is_branch_predict_pype0),
+    .lookup_PC(lookup_PC)
+    );
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
     .PC_pype0(PC_pype0), 
@@ -190,6 +207,7 @@ noper noper_unit (
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
     .csr_rdata(csr_rdata),
     .MemRW_pype2(MemRW_pype2),
+    .is_branch_predict_pype0(is_branch_predict_pype0),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
@@ -207,8 +225,10 @@ noper noper_unit (
     .csr_addr_r(csr_addr_r),
     .csr_rdata_pype1(csr_rdata_pype1),
     .funct3_pype1(funct3_pype1),
-    .branch_PC_early_contral(branch_PC_early_contral),
-    .branch_PC_early(branch_PC_early));
+    //.branch_PC_early_contral(branch_PC_early_contral),
+    //.branch_PC_early(branch_PC_early)
+    .is_branch_predict_pype1(is_branch_predict_pype1)
+    );
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
     .PC_pype1(PC_pype1), 
@@ -236,10 +256,7 @@ noper noper_unit (
     .is_ecall_pype1(is_ecall_pype1),
     .is_mret_pype1(is_mret_pype1),
     .csr_rdata_pype1(csr_rdata_pype1),
-    //.csr_rdata(csr_rdata),
-
-    //.csr_mtvec(csr_mtvec),
-    //.csr_mepc(csr_mepc),
+    .is_branch_predict_pype1(is_branch_predict_pype1),
 
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
@@ -251,15 +268,20 @@ noper noper_unit (
     .MemBranch_pype2(MemBranch_pype2),
     .dsize_pype2(dsize_pype2),
     .funct3_pype2(funct3_pype2),
-    .branch_PC_contral(branch_PC_contral),
-    .branch_PC(branch_PC),
-    .csr_PC_contral(csr_PC_contral),
-    .csr_PC(csr_PC),
-    //.csr_addr_r(csr_addr_r),
+    //.branch_PC_contral(branch_PC_contral),
+    //.branch_PC(branch_PC),
+    //.csr_PC_contral(csr_PC_contral),
+    //.csr_PC(csr_PC),
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
     .csr_wdata_pype2(csr_wdata_pype2),
-    .is_ePC_pype2(is_ePC_pype2)
+    .is_ePC_pype2(is_ePC_pype2),
+    .branch_miss_contral(branch_miss_contral),
+    .branch_miss_PC(branch_miss_PC),
+    .branch_BTB_PC(branch_BTB_PC),
+    .branch_BTB_contral(branch_BTB_contral),
+    .is_branch_pype2(is_branch_pype2),
+    .PC_pype2(PC_pype2)
     );
 
 
@@ -330,8 +352,25 @@ noper noper_unit (
     .csr_addr_w(csr_addr_w),
     .csr_wdata(csr_wdata),
     .csr_rdata(csr_rdata)
-    //.csr_mtvec(csr_mtvec),
-    //.csr_mepc(csr_mepc)
+    );
+
+    BHT i_BHT(
+    .clk(clk), .rst(rst),
+    .lookup_PC(lookup_PC),
+    .updata_PC(PC_pype2),
+    .updata_taken(branch_BTB_contral),
+    .updata_enable(is_branch_pype2),
+    .predict_taken(predict_taken)
+    );
+
+    BTB i_BTB(
+    .clk(clk), .rst(rst),
+    .lookup_PC(lookup_PC),
+    .BTB_hit(BTB_hit),
+    .BTB_PC(BTB_PC),
+    .resolved_Branch_PC(PC_pype2),
+    .destination_PC(branch_BTB_PC),
+    .is_branch_inst(is_branch_pype2)
     );
 
 endmodule

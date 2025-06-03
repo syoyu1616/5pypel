@@ -59,6 +59,8 @@ module decode (
     output reg [3:0] ALU_control_pype,
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [2:0] funct3_pype1,
+    input is_branch_predict_pype0,
+    output reg is_branch_predict_pype1,
 
 
 
@@ -194,7 +196,6 @@ module decode (
 
     if (!rst) begin
         //制御線維持
-
         writeback_control_pype1 <= 3'b0;
         MemRW_pype1 <= 2'b0;
         MemBranch_pype <= 3'b0;
@@ -206,7 +207,7 @@ module decode (
         is_ecall_pype1 <= 1'b0;
         is_mret_pype1 <= 1'b0;
         csr_rdata_pype1 <= 32'b0;
-
+        is_branch_predict_pype1 <= 0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -214,7 +215,6 @@ module decode (
         read_data1_pype <= 32'b0;
         read_data2_pype <= 32'b0;
 
-        
         //PCの維持
         PC_pype1 <= 32'b0;
         PCp4_pype1 <= 32'b0;
@@ -232,6 +232,7 @@ module decode (
         is_ecall_pype1 <= 1'b0;
         is_mret_pype1 <= 1'b0;
         csr_rdata_pype1 <= 32'b0;
+        is_branch_predict_pype1 <= 0;
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -246,7 +247,6 @@ module decode (
     
     // Stop(pause) CPU
     else if (keep) begin
-
         //制御線維持
         writeback_control_pype1 <= writeback_control_pype1;
         MemRW_pype1 <= MemRW_pype1;
@@ -259,6 +259,7 @@ module decode (
         is_ecall_pype1 <= is_ecall_pype1;
         is_mret_pype1 <= is_ecall_pype1;
         csr_rdata_pype1 <= csr_rdata_pype1;
+        is_branch_predict_pype1 <= is_branch_predict_pype1;
 
         //data維持やex以降で用いるやつ維持
         Imm_pype <= Imm_pype;
@@ -267,7 +268,6 @@ module decode (
                             read_data1_pype;
         read_data2_pype <= ((Regwrite == 0) && (ID_EX_write_rw[0] == 1)) ? write_reg_data :
                             read_data2_pype;
-
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
@@ -427,6 +427,7 @@ module decode (
         is_ecall_pype1 <= is_ecall;
         is_mret_pype1 <= is_mret;
         csr_rdata_pype1 <= csr_rdata;
+        is_branch_predict_pype1 <= is_branch_predict_pype0;
     end
 end
 

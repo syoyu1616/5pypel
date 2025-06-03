@@ -41,6 +41,14 @@ module execute(
     output reg [31:0] csr_wdata_pype2,
     output reg is_ePC_pype2,
 
+    //分岐予測
+    input is_branch_predict_pype1,
+    output branch_miss_contral,
+    output [31:0] branch_miss_PC,
+    output [31:0] branch_BTB_PC,
+    output branch_BTB_contral,
+    output is_branch_pype2,
+    output reg [31:0] PC_pype2, //これは分岐予測してないときの方に変更！
 
     //制御線
     input [2:0] writeback_control_pype1,
@@ -61,17 +69,21 @@ module execute(
     output reg [2:0] MemBranch_pype2,
 
     output reg [1:0] dsize_pype2,
-    output reg [2:0] funct3_pype2,
+    output reg [2:0] funct3_pype2
 
-    output [31:0] branch_PC,
-    output branch_PC_contral,
-    output [31:0] csr_PC,
-    output csr_PC_contral
+
+    //output [31:0] csr_PC,
+    //output csr_PC_contral
 );
 reg is_ecall_pype;
 reg is_mret_pype;
 reg [31:0] csr_rdata_pype2;
 reg [31:0] next_PCBranch_pype2;
+reg is_branch_predict_pype2;
+wire branch_PC_contral;
+wire [31:0] branch_PC;
+wire csr_PC_contral;
+wire [31:0] csr_PC;
   
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
@@ -109,7 +121,6 @@ reg [31:0] next_PCBranch_pype2;
         endcase
     endfunction
 
-
 wire [31:0] read_data1_effetive =
     (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data :
     (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data :
@@ -124,7 +135,6 @@ wire [31:0] read_data2_effective =
     (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
                                  read_data2_pype;
 
-
 //分岐予測だとジャンプの時のpc+4を書く必要もある
 wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b10) ? PC_pype1 :
@@ -135,8 +145,6 @@ wire [31:0] ALU_data1 = (ALU_Src_pype[2:1] == 2'b00)  ? 32'b0 :
                         (ALU_Src_pype[2:1] == 2'b01)  ? read_data1_pype :
                         32'bx;
 
-
-
 wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
                         (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
@@ -145,23 +153,34 @@ wire [31:0] ALU_data2 = (ALU_Src_pype[0] == 1'b0) ? Imm_pype :
                         (ALU_Src_pype[0] == 1'b1)  ? read_data2_pype :
                         32'bx;
 
-//クリティカルパスになるかも？
+//クリティカルパスになるかも？ 分岐予測するならこいつら全員wireや
 assign branch_PC_contral =
     ((MemBranch_pype2 == 3'b100 && ALU_co_pype == 32'b0) ||            // BGE
      (MemBranch_pype2 == 3'b011 && ALU_co_pype != 32'b0) ||             // BLT
      (MemBranch_pype2 == 3'b110 && ALU_co_pype == 32'b0) ||           // BGEU
      (MemBranch_pype2 == 3'b101 && ALU_co_pype != 32'b0) ||            // BLTU                                   
-     (MemBranch_pype2 == 3'b111) ||
-     (MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) ||
-     (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0));
+     (MemBranch_pype2 == 3'b111) || //j
+     (MemBranch_pype2 == 3'b001 && ALU_co_pype == 32'b0) || //beq
+     (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0)); // bne
 
 assign branch_PC = PCBranch_pype2;//戻り先を書かなきゃね
-
 assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
-
 assign csr_PC = csr_rdata_pype2;
 
+//分岐予測予測して分岐が立たない→分岐命令のPC+4 分岐予測してないのに分岐予測が立つ→そのPC
+assign branch_miss_contral = (is_branch_predict_pype2 && (!branch_PC_contral && !csr_PC_contral)) || (!is_branch_predict_pype2 && (branch_PC_contral || csr_PC_contral));
 
+assign branch_miss_PC = (branch_PC_contral) ? branch_PC:
+                        (csr_PC_contral) ? csr_PC:
+                        PCp4_pype2;
+
+assign branch_BTB_contral = branch_PC_contral || csr_PC_contral;
+
+assign branch_BTB_PC = (branch_PC_contral) ? branch_PC:
+                       (csr_PC_contral) ? csr_PC:
+                       32'bx;//何を入れるべきか
+
+assign is_branch_pype2 = |MemBranch_pype2;
 
 always @(posedge clk or negedge rst) begin
 //keepが上だとkeep中のnopが上手くいかない
@@ -183,6 +202,8 @@ always @(posedge clk or negedge rst) begin
         csr_rdata_pype2 <= 32'b0;
         is_ePC_pype2 <= 1'b0;
         MemBranch_pype2 <= 3'b0;
+        is_branch_predict_pype2 <= 0;
+        PC_pype2 <= 0; 
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -206,6 +227,8 @@ always @(posedge clk or negedge rst) begin
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
         MemBranch_pype2 <= MemBranch_pype2;
+        is_branch_predict_pype2 <= 0;//is_branch_predict_pype2;
+        PC_pype2 <= PC_pype2; //BTB系はストールとかの信号を考えていないのでkeepでも消すかも
 
     end else if (nop) begin
 
@@ -223,7 +246,8 @@ always @(posedge clk or negedge rst) begin
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
         MemBranch_pype2 <= 3'b0;
-
+        is_branch_predict_pype2 <= 0;
+        PC_pype2 <= 0;
     end
 
 
@@ -237,8 +261,7 @@ always @(posedge clk or negedge rst) begin
             else
             next_PCBranch_pype2 = PC_pype1 + $signed(Imm_pype);
             end
-            default: next_PCBranch_pype2 = PC_pype1 + $signed(Imm_pype);
-            
+            default: next_PCBranch_pype2 = PC_pype1 + $signed(Imm_pype); 
     endcase
 
         //例外PCについて
@@ -289,6 +312,8 @@ endcase
     is_mret_pype <= is_mret_pype1;
     ALU_co_pype <= (is_csr_pype1 && !is_ecall_pype1) ? csr_rdata_pype1 : alu(ALU_data1, ALU_data2, ALU_control_pype);
     csr_rdata_pype2 <= csr_rdata_pype1;
+    is_branch_predict_pype2 <= is_branch_predict_pype1;
+    PC_pype2 <= PC_pype1;
 
 end
 end

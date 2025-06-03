@@ -1,14 +1,15 @@
 //Branch History Table
+//predict_takenで実際に分岐予測させるかを演算
 module BHT(
     input clk,
     input rst,
-    input [31:0] lookup_PC,
-    input [31:0] updata_PC,
-    input updata_taken,
-    input updata_enable,//分岐に次ぐ分岐の場合などに用いる？
-    output predict_taken,
-)
-
+    input [31:0] lookup_PC, //fetchから
+    input [31:0] updata_PC, //branchの時のPC_pype2;
+    input updata_taken, //branch成立しましたか？ branch_PC_contralを引っ張ってくる
+    input updata_enable, //branchですか？　|membranchを引っ張ってくる
+    output predict_taken
+);
+integer i;
 reg [1:0] bit_table [0:4095];
 wire [11:0] updata_PC_use = updata_PC[13:2]; //PCを4096bitに収まる形でやるため
 wire [11:0] lookup_PC_use = lookup_PC[13:2];
@@ -18,10 +19,9 @@ wire [11:0] lookup_PC_use = lookup_PC[13:2];
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             for (i = 0; i < 4096; i = i + 1) 
-            bit_table[i] <= 2'b0;
+            bit_table[i] <= 2'b01;//最初はweakly not taken
 
-        end else if (updata_enable) begin // "upload_enable" は "updata_enable" のタイポと仮定
-
+        end else if (updata_enable) begin 
         case (bit_table[updata_PC_use]) // updata_PCから計算したインデックスを使用
             2'b00: begin // 現在: Strongly Not Taken
                 if (updata_taken)
@@ -49,6 +49,4 @@ wire [11:0] lookup_PC_use = lookup_PC[13:2];
         endcase
     end
 end
-
-
 endmodule
