@@ -117,9 +117,6 @@ noper noper_unit (
     .ID_EX_write_rw  (ID_EX_write_rw),
 
     // 分岐成立
-    //.branch_PC_contral (branch_PC_contral),
-    //.branch_PC_early_contral (branch_PC_early_contral),
-    //.csr_PC_contral(csr_PC_contral),
     .branch_miss_contral(branch_miss_contral),
 
     //forwarding
@@ -173,9 +170,7 @@ noper noper_unit (
     .PCp4_pype0(PCp4_pype0),
     .fornop_register1_pype(fornop_register1_pype), 
     .fornop_register2_pype(fornop_register2_pype),
-    .is_branch_predict_pype0(is_branch_predict_pype0),
-    .lookup_PC(lookup_PC),
-    .PC_Np_pype0(PC_Np_pype0)
+    .lookup_PC(lookup_PC)
     );
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
@@ -203,9 +198,7 @@ noper noper_unit (
     .forwarding_ID_MEM_hazard_data(forwarding_ID_MEM_hazard_data),
     .csr_rdata(csr_rdata),
     .MemRW_pype2(MemRW_pype2),
-    .is_branch_predict_pype0(is_branch_predict_pype0),
     .is_branch_predict(predict_taken),
-    .PC_Np_pype0(PC_Np_pype0),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
@@ -223,8 +216,7 @@ noper noper_unit (
     .csr_addr_r(csr_addr_r),
     .csr_rdata_pype1(csr_rdata_pype1),
     .funct3_pype1(funct3_pype1),
-    .is_branch_predict_pype1(is_branch_predict_pype1),
-    .PC_Np_pype1(PC_Np_pype1)
+    .is_branch_predict_pype1(is_branch_predict_pype1)
     );
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
@@ -254,7 +246,6 @@ noper noper_unit (
     .is_mret_pype1(is_mret_pype1),
     .csr_rdata_pype1(csr_rdata_pype1),
     .is_branch_predict_pype1(is_branch_predict_pype1),
-    .PC_Np_pype1(PC_Np_pype1),//次の命令でis_predictが立っちゃうので
 
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
@@ -275,8 +266,7 @@ noper noper_unit (
     .branch_BTB_PC(branch_BTB_PC),
     .branch_BTB_contral(branch_BTB_contral),
     .is_branch_pype2(is_branch_pype2),
-    .PC_pype2(PC_pype2),
-    .PC_Np_pype2(PC_Np_pype2)
+    .PC_pype2(PC_pype2)
     );
 
 

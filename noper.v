@@ -28,12 +28,7 @@ module noper(
     input [2:0] writeback_control_pype2,
     input [2:0] writeback_control_pype3,
 
-
-
     //分岐成立
-    /*input branch_PC_contral,
-    input branch_PC_early_contral,
-    input csr_PC_contral,*/
     input branch_miss_contral,
 
     //メモリアクセスのためのストール

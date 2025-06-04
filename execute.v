@@ -31,11 +31,6 @@ module execute(
     input is_mret_pype1,
     input [31:0] csr_rdata_pype1,
 
-    //output [11:0] csr_addr_r,
-    //input [31:0] csr_rdata,//csrから読んだ奴ら
-    //input [31:0] csr_mtvec,
-    //input [31:0] csr_mepc,
-
     output reg is_csr_pype2,
     output reg [11:0] csr_pype2,
     output reg [31:0] csr_wdata_pype2,
@@ -49,8 +44,6 @@ module execute(
     output branch_BTB_contral,
     output is_branch_pype2,
     output reg [31:0] PC_pype2, 
-    input [31:0] PC_Np_pype1,
-    output reg [31:0] PC_Np_pype2,
 
     //制御線
     input [2:0] writeback_control_pype1,
@@ -72,7 +65,6 @@ module execute(
 
     output reg [1:0] dsize_pype2,
     output reg [2:0] funct3_pype2
-
 );
 reg is_ecall_pype;
 reg is_mret_pype;
@@ -166,20 +158,23 @@ assign branch_PC = PCBranch_pype2;//戻り先を書かなきゃね
 assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
 assign csr_PC = csr_rdata_pype2;
 
-//分岐予測予測して分岐が立たない→分岐命令のPC+4 分岐予測してないのに分岐予測が立つ→そのPC
-assign branch_miss_contral = (is_branch_predict_pype2 && (!branch_PC_contral && !csr_PC_contral)) || (!is_branch_predict_pype2 && (branch_PC_contral || csr_PC_contral));
-
-assign branch_miss_PC = (branch_PC_contral) ? branch_PC:
-                        (csr_PC_contral) ? csr_PC:
-                        PCp4_pype2;
-
 assign branch_BTB_contral = branch_PC_contral || csr_PC_contral;
 
 assign branch_BTB_PC = (branch_PC_contral) ? branch_PC:
                        (csr_PC_contral) ? csr_PC:
-                       32'bx;//何を入れるべきか
+                       32'b0;//何を入れるべきか
 
 assign is_branch_pype2 = |MemBranch_pype2;
+
+//分岐予測予測して分岐が立たない→分岐命令のPC+4 分岐予測してないのに分岐予測が立つ→そのPC
+//「分岐予測先と実際の分岐先が違う」が無い 
+assign branch_miss_contral = (is_branch_predict_pype2 && (!branch_PC_contral && !csr_PC_contral)) || (!is_branch_predict_pype2 && (branch_PC_contral || csr_PC_contral)
+                             || (is_branch_predict_pype2 && (branch_PC_contral || csr_PC_contral) && (branch_BTB_PC != PC_pype1)));
+
+assign branch_miss_PC = (branch_PC_contral) ? branch_PC: //branch_predictしてないのにbranch立ったor branch predictしたけど実際のジャンプ先が違った時に用いる。
+                        (csr_PC_contral) ? csr_PC:
+                        PCp4_pype2;
+
 
 always @(posedge clk or negedge rst) begin
 //keepが上だとkeep中のnopが上手くいかない
@@ -203,7 +198,6 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0; 
-        PC_Np_pype2 <= 32'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -228,7 +222,7 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         is_branch_predict_pype2 <= 0;//is_branch_predict_pype2;
         PC_pype2 <= PC_pype2; //BTB系はストールとかの信号を考えていないのでkeepでも消すかも
-        PC_Np_pype2 <= PC_Np_pype2;
+    
 
     end else if (nop) begin
         read_data2_pype2 <= 32'b0;
@@ -247,7 +241,6 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0;
-        PC_Np_pype2 <= PC_Np_pype2;
     end
 
 
@@ -313,8 +306,6 @@ endcase
     csr_rdata_pype2 <= csr_rdata_pype1;
     is_branch_predict_pype2 <= is_branch_predict_pype1;
     PC_pype2 <= PC_pype1;
-    PC_Np_pype2 <= PC_Np_pype1;
-
 end
 end
 endmodule
