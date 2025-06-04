@@ -10,7 +10,8 @@ module BTB (
     //解決したブランチのジャンプ先 branch系　PCが一致すれば同じ　ジャンプ系　jalrがx[rs1]の値を参照するため同じPCでも分岐先が異なる
     input [31:0] resolved_Branch_PC, //branchの時のPC_pype2;
     input [31:0] destination_PC,//branch_PCから引っ張ってくる
-    input is_branch_inst //|membranchから引っ張ってくる
+    input is_branch_inst, //|membranchから引っ張ってくる
+    input updata_taken //成立したら更新
 );
 
 integer i;
@@ -31,6 +32,7 @@ always @(posedge clk or negedge rst) begin
 
     end 
     else if (is_branch_inst) begin 
+        if (updata_taken)
         BTB_table[resolved_Branch_PC_use] <= destination_PC;
 end
 end 

@@ -48,7 +48,9 @@ module execute(
     output [31:0] branch_BTB_PC,
     output branch_BTB_contral,
     output is_branch_pype2,
-    output reg [31:0] PC_pype2, //これは分岐予測してないときの方に変更！
+    output reg [31:0] PC_pype2, 
+    input [31:0] PC_Np_pype1,
+    output reg [31:0] PC_Np_pype2,
 
     //制御線
     input [2:0] writeback_control_pype1,
@@ -71,9 +73,6 @@ module execute(
     output reg [1:0] dsize_pype2,
     output reg [2:0] funct3_pype2
 
-
-    //output [31:0] csr_PC,
-    //output csr_PC_contral
 );
 reg is_ecall_pype;
 reg is_mret_pype;
@@ -204,10 +203,10 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0; 
+        PC_Np_pype2 <= 32'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
-
         read_data2_pype2 <= read_data2_pype2;
         PCp4_pype2 <= PCp4_pype2;
         WReg_pype2 <= WReg_pype2;
@@ -229,9 +228,9 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= MemBranch_pype2;
         is_branch_predict_pype2 <= 0;//is_branch_predict_pype2;
         PC_pype2 <= PC_pype2; //BTB系はストールとかの信号を考えていないのでkeepでも消すかも
+        PC_Np_pype2 <= PC_Np_pype2;
 
     end else if (nop) begin
-
         read_data2_pype2 <= 32'b0;
         PCp4_pype2 <= 32'b0;
         WReg_pype2 <= 5'b0;
@@ -248,11 +247,11 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0;
+        PC_Np_pype2 <= PC_Np_pype2;
     end
 
 
     else begin
-
     
     case(MemBranch_pype)
             3'b111: begin
@@ -314,6 +313,7 @@ endcase
     csr_rdata_pype2 <= csr_rdata_pype1;
     is_branch_predict_pype2 <= is_branch_predict_pype1;
     PC_pype2 <= PC_pype1;
+    PC_Np_pype2 <= PC_Np_pype1;
 
 end
 end

@@ -97,6 +97,7 @@ module core(
     wire branch_BTB_contral, is_branch_pype2, predict_taken, BTB_hit;
     wire [31:0] branch_miss_PC;
     wire branch_miss_contral;
+    wire [31:0] PC_Np_pype0, PC_Np_pype1, PC_Np_pype2;
 
 noper noper_unit (
     .clk(clk),
@@ -159,12 +160,6 @@ noper noper_unit (
 );
 
     fetch i_fetch(.clk(clk), .rst(rst), .keep(stall_IF), .nop(nop_IF), 
-    //.branch_PC_early_contral(branch_PC_early_contral), 
-    //.branch_PC_contral(branch_PC_contral), 
-    //.branch_PC_early(branch_PC_early), 
-    //.branch_PC(branch_PC), 
-    //.csr_PC_contral(csr_PC_contral),
-    //.csr_PC(csr_PC),
     .branch_miss_contral(branch_miss_contral),
     .branch_miss_PC(branch_miss_PC),
     .is_branch_predict(predict_taken),
@@ -179,7 +174,8 @@ noper noper_unit (
     .fornop_register1_pype(fornop_register1_pype), 
     .fornop_register2_pype(fornop_register2_pype),
     .is_branch_predict_pype0(is_branch_predict_pype0),
-    .lookup_PC(lookup_PC)
+    .lookup_PC(lookup_PC),
+    .PC_Np_pype0(PC_Np_pype0)
     );
 
     decode i_decode(.rst(rst), .clk(clk), .keep(stall_ID), .nop(nop_ID),
@@ -208,6 +204,8 @@ noper noper_unit (
     .csr_rdata(csr_rdata),
     .MemRW_pype2(MemRW_pype2),
     .is_branch_predict_pype0(is_branch_predict_pype0),
+    .is_branch_predict(predict_taken),
+    .PC_Np_pype0(PC_Np_pype0),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
@@ -225,9 +223,8 @@ noper noper_unit (
     .csr_addr_r(csr_addr_r),
     .csr_rdata_pype1(csr_rdata_pype1),
     .funct3_pype1(funct3_pype1),
-    //.branch_PC_early_contral(branch_PC_early_contral),
-    //.branch_PC_early(branch_PC_early)
-    .is_branch_predict_pype1(is_branch_predict_pype1)
+    .is_branch_predict_pype1(is_branch_predict_pype1),
+    .PC_Np_pype1(PC_Np_pype1)
     );
 
     execute i_execute(.rst(rst), .clk(clk), .keep(stall_EX), .nop(nop_EX), 
@@ -257,6 +254,7 @@ noper noper_unit (
     .is_mret_pype1(is_mret_pype1),
     .csr_rdata_pype1(csr_rdata_pype1),
     .is_branch_predict_pype1(is_branch_predict_pype1),
+    .PC_Np_pype1(PC_Np_pype1),//次の命令でis_predictが立っちゃうので
 
     .PCBranch_pype2(PCBranch_pype2), 
     .PCp4_pype2(PCp4_pype2), 
@@ -268,10 +266,6 @@ noper noper_unit (
     .MemBranch_pype2(MemBranch_pype2),
     .dsize_pype2(dsize_pype2),
     .funct3_pype2(funct3_pype2),
-    //.branch_PC_contral(branch_PC_contral),
-    //.branch_PC(branch_PC),
-    //.csr_PC_contral(csr_PC_contral),
-    //.csr_PC(csr_PC),
     .is_csr_pype2(is_csr_pype2),
     .csr_pype2(csr_pype2),
     .csr_wdata_pype2(csr_wdata_pype2),
@@ -281,7 +275,8 @@ noper noper_unit (
     .branch_BTB_PC(branch_BTB_PC),
     .branch_BTB_contral(branch_BTB_contral),
     .is_branch_pype2(is_branch_pype2),
-    .PC_pype2(PC_pype2)
+    .PC_pype2(PC_pype2),
+    .PC_Np_pype2(PC_Np_pype2)
     );
 
 
@@ -370,7 +365,8 @@ noper noper_unit (
     .BTB_PC(BTB_PC),
     .resolved_Branch_PC(PC_pype2),
     .destination_PC(branch_BTB_PC),
-    .is_branch_inst(is_branch_pype2)
+    .is_branch_inst(is_branch_pype2),
+    .updata_taken(branch_BTB_contral)
     );
 
 endmodule

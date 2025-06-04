@@ -1,20 +1,20 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Tue Jun  3 07:38:46 2025
+[*] Wed Jun  4 04:28:25 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Tue Jun  3 07:34:21 2025"
-[dumpfile_size] 8469193
+[dumpfile_mtime] "Wed Jun  4 03:31:43 2025"
+[dumpfile_size] 10973125
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 15480950
+[timestart] 33618800
 [size] 2160 1321
 [pos] -27 -24
-*-14.000000 15561060 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-14.000000 33659840 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
 [sst_width] 352
-[signals_width] 270
+[signals_width] 290
 [sst_expanded] 1
 [sst_vpaned_height] 885
 @22
@@ -25,14 +25,19 @@ top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 top_test.i_top.i_core.i_fetch.branch_miss_contral
 top_test.i_top.i_core.i_execute.is_branch_predict_pype2
 top_test.i_top.i_core.i_execute.branch_PC_contral
-@29
+top_test.i_top.i_core.i_decode.opcode[6:0]
+top_test.i_top.i_core.i_execute.MemBranch_pype[2:0]
+top_test.i_top.i_core.i_execute.MemBranch_pype2[2:0]
 top_test.i_top.i_core.i_execute.csr_PC_contral
 @22
 top_test.i_top.i_core.i_fetch.branch_miss_PC[31:0]
-top_test.i_top.i_core.i_fetch.next_iaddr[31:0]
+top_test.i_top.i_core.i_execute.branch_PC[31:0]
 @28
 top_test.i_top.i_core.i_fetch.is_branch_predict
+top_test.i_top.i_core.i_fetch.is_branch_predict_wire
 top_test.i_top.i_core.i_fetch.is_branch_predict_pype0
+top_test.i_top.i_core.i_execute.is_branch_predict_pype1
+top_test.i_top.i_core.i_execute.is_branch_predict_pype2
 top_test.i_top.i_core.i_fetch.nop
 @22
 top_test.i_top.i_core.i_BHT.updata_PC[31:0]
@@ -48,5 +53,33 @@ top_test.i_top.i_core.i_fetch.lookup_PC[31:0]
 top_test.i_top.i_core.i_BTB.BTB_hit
 @22
 top_test.i_top.i_core.i_BTB.BTB_PC[31:0]
+top_test.i_top.i_core.i_fetch.PC_Np_pype0[31:0]
+top_test.i_top.i_core.i_decode.PC_Np_pype1[31:0]
+top_test.i_top.i_core.i_execute.PC_Np_pype2[31:0]
+top_test.i_top.i_core.i_regfile.in[31:0]
+@28
+top_test.i_top.i_core.i_regfile.write_n
+top_test.i_top.i_core.i_fetch.nop
+top_test.i_top.i_core.noper_unit.hazard_pype1
+@22
+top_test.i_top.i_core.noper_unit.WReg_pype[4:0]
+top_test.i_top.i_core.i_execute.ALU_data1[31:0]
+top_test.i_top.i_core.i_execute.ALU_data2[31:0]
+top_test.i_top.i_dcache.caddr[31:0]
+top_test.i_top.i_dcache.cdata[31:0]
+@28
+top_test.i_top.i_dcache.creq
+top_test.i_top.i_dcache.cwrite
+@22
+top_test.i_top.i_core.i_decode.PC_Np_pype0[31:0]
+top_test.i_top.i_core.i_decode.PC_Np_pype1[31:0]
+top_test.i_top.i_core.i_execute.PC_Np_pype2[31:0]
+top_test.i_top.i_core.i_decode.PC_pype0[31:0]
+top_test.i_top.i_core.i_decode.PC_pype1[31:0]
+top_test.i_top.i_core.i_decode.PCp4_pype0[31:0]
+top_test.i_top.i_core.i_decode.PCp4_pype1[31:0]
+top_test.i_top.i_core.i_decode.PCp4_pype1[31:0]
+@23
+top_test.i_top.i_core.i_execute.PCp4_pype2[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

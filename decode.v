@@ -45,6 +45,11 @@ module decode (
     output reg [31:0] PCp4_pype1,
     output reg [31:0] Imm_pype,
 
+    input [31:0] PC_Np_pype0,
+    output reg [31:0] PC_Np_pype1,
+    //input [31:0] PCp4_Np_pype0,
+    //output reg [31:0] PCp4_Np_pype1,
+
     //csr
     output reg is_csr_pype1,
     output reg [11:0] csr_pype1,
@@ -60,6 +65,7 @@ module decode (
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [2:0] funct3_pype1,
     input is_branch_predict_pype0,
+    input is_branch_predict,
     output reg is_branch_predict_pype1,
 
 
@@ -218,6 +224,8 @@ module decode (
         //PCの維持
         PC_pype1 <= 32'b0;
         PCp4_pype1 <= 32'b0;
+        PC_Np_pype1 <= 32'b0;
+        //PCp4_Np_pype1 <= 32'b0;
 
     end else if (nop) begin
         //制御線維持
@@ -242,7 +250,9 @@ module decode (
 
         //PCやALU_controlの維持
         PC_pype1 <= 32'b0;
-        PCp4_pype1 <= 12'b0;
+        PCp4_pype1 <= 32'b0;
+        PC_Np_pype1 <= 32'b0;
+        //PCp4_Np_pype1 <= 32'b0;
     end
     
     // Stop(pause) CPU
@@ -271,6 +281,8 @@ module decode (
         //PCやALU_controlの維持
         PC_pype1 <= PC_pype1;
         PCp4_pype1 <= PCp4_pype1;
+        PC_Np_pype1 <= PC_Np_pype1;
+        //PCp4_Np_pype1 <= PCp4_Np_pype1;
 
     end
 
@@ -427,7 +439,9 @@ module decode (
         is_ecall_pype1 <= is_ecall;
         is_mret_pype1 <= is_mret;
         csr_rdata_pype1 <= csr_rdata;
-        is_branch_predict_pype1 <= is_branch_predict_pype0;
+        is_branch_predict_pype1 <= is_branch_predict;
+        PC_Np_pype1 <= PC_Np_pype0;
+        //PCp4_Np_pype1 <= PCp4_Np_pype0;
     end
 end
 
