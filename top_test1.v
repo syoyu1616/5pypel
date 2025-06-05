@@ -90,6 +90,11 @@ assign dcache_addr = i_top.i_dcache.caddr;
 assign icache_state = i_top.i_icache.state;
 assign dcache_state = i_top.i_dcache.state;
 
+
+//分岐予測計測
+wire [31:0] branch_count;
+wire [31:0] branch_miss_count;
+
 top #(
 	.ICACHE_SIZE(ICACHE_SIZE), .ICACHE_ASSOC(ICACHE_ASSOC), 
 	.DCACHE_SIZE(DCACHE_SIZE), .DCACHE_ASSOC(DCACHE_ASSOC)
@@ -173,6 +178,8 @@ initial begin
 	end
 
 	$display("Reach INTOTAL (%d).", INTOTAL);
+	//$display("Reach branch_miss_count (%d).", branch_miss_count);
+	//$display("Reach branch_count (%d).", branch_count);
 	dump_t;
 	$finish;
 	
@@ -306,6 +313,8 @@ task store_t; begin
 	if(dmreq && write) begin
 		if(daddr == EXIT_ADDR) begin
 			$display("\nExited by program at cycle-time %d.", cycles);
+			$display("Reach branch_miss_count (%d).", branch_miss_count);
+			$display("Reach branch_count (%d).", branch_count);
 			$fwrite(icache_log_fp, "\n",
 				"TOTAL ACCESS:     %d\n", icache_reqcnt, 
 				"-----------------------------\n",

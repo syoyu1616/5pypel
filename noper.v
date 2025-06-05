@@ -31,6 +31,10 @@ module noper(
     //分岐成立
     input branch_miss_contral,
 
+    //分岐予測のため
+    input [2:0] MemBranch_pype2,
+    input [31:0] PCp4_pype2,
+
     //メモリアクセスのためのストール
     input iready_n,
     input dready_n,
@@ -75,7 +79,8 @@ module noper(
     wire mem_ac_stall; //メモリアクセスによるストールの管理
     assign mem_ac_stall = iready_n || (dready_n && MemRW_pype2[1]) || (dbusy && MemRW_pype2[0]);
 
-    assign forwarding_ID_EX_data = ALU_co_pype;
+    assign forwarding_ID_EX_data = (MemBranch_pype2 == 3'b111) ? PCp4_pype2 : ALU_co_pype;
+
     assign forwarding_ID_MEM_data = write_reg_data; //同じ名前でregにして使うかも
     assign forwarding_load_data = mem_data_pype;
    

@@ -15,6 +15,7 @@ module BTB (
 );
 
 integer i;
+//2^12(三桁)から2^7二桁で
 reg [31:0] BTB_table [0:4095];//20bitで目的PCは網羅できるかも tag lookup_pcを減らしてちゃんとあってるか(10056と10156の判別みたいな(三桁目を書いて+4とかあるかも))
 
 wire [11:0] lookup_PC_use = lookup_PC[13:2];
@@ -29,7 +30,6 @@ always @(posedge clk or negedge rst) begin
     if (!rst) begin
     for (i = 0; i < 4096; i = i + 1) 
             BTB_table[i] <= 32'b0;
-
     end 
     else if (is_branch_inst) begin 
         if (updata_taken)

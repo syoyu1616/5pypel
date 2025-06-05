@@ -30,6 +30,10 @@ module top#(
 	output dmwrite,
 	output iack_n,
 
+	output [31:0] branch_count,
+    output [31:0] branch_miss_count,
+
+
 	inout[DMEMBUS_SIZE-1:0] ddt
 );
 
@@ -59,6 +63,10 @@ module top#(
 		.dready_n(dready_n), //データキャッシュ読み出し完了 (1-bit)
 		.dbusy(dbusy), //キャッシュがメモリへアクセスを行っていて他の要求を受けることができない状態 (1-bit)
 		.ddata(ddata), //読み出されたデータ (32-bit)
+
+		//分岐予測カウンタ
+		.branch_count(branch_count),
+		.branch_miss_count(branch_miss_count),
 
 		//割り込み系
 		.oint_n(oint_n), //割り込み 3つのビットそれぞれが1つの理由による割り込みを担当 立ち下がったらその理由による割り込みがあったことを示す (3-bit)

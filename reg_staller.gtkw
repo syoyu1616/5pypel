@@ -1,25 +1,24 @@
 [*]
 [*] GTKWave Analyzer v3.3.116 (w)1999-2023 BSI
-[*] Wed Jun  4 05:23:32 2025
+[*] Thu Jun  5 03:27:06 2025
 [*]
 [dumpfile] "/home/seigo/modules/programs/5pypel/wave.vcd"
-[dumpfile_mtime] "Wed Jun  4 05:16:14 2025"
-[dumpfile_size] 1183444807
+[dumpfile_mtime] "Thu Jun  5 02:26:03 2025"
+[dumpfile_size] 200454750
 [savefile] "/home/seigo/modules/programs/5pypel/reg_staller.gtkw"
-[timestart] 103585260
+[timestart] 137619560
 [size] 2160 1321
 [pos] -27 -24
-*-12.000000 103595330 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-13.000000 137640000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] top_test.
 [treeopen] top_test.i_top.
 [treeopen] top_test.i_top.i_core.
 [sst_width] 352
-[signals_width] 290
+[signals_width] 310
 [sst_expanded] 1
 [sst_vpaned_height] 885
-@23
-top_test.i_top.i_core.i_fetch.iaddr[31:0]
 @22
+top_test.i_top.i_core.i_fetch.iaddr[31:0]
 top_test.i_top.i_core.i_fetch.idata[31:0]
 top_test.i_top.i_core.i_fetch.Instraction_pype[31:0]
 @28
@@ -52,19 +51,23 @@ top_test.i_top.i_core.i_fetch.lookup_PC[31:0]
 top_test.i_top.i_core.i_BTB.BTB_hit
 @22
 top_test.i_top.i_core.i_BTB.BTB_PC[31:0]
-top_test.i_top.i_core.i_regfile.in[31:0]
-@28
-top_test.i_top.i_core.i_regfile.write_n
-top_test.i_top.i_core.i_fetch.nop
-top_test.i_top.i_core.noper_unit.hazard_pype1
-@22
-top_test.i_top.i_core.noper_unit.WReg_pype[4:0]
 top_test.i_top.i_core.i_execute.ALU_data1[31:0]
 top_test.i_top.i_core.i_execute.ALU_data2[31:0]
 top_test.i_top.i_dcache.caddr[31:0]
 top_test.i_top.i_dcache.cdata[31:0]
+top_test.i_top.i_core.i_regfile.in[31:0]
 @28
-top_test.i_top.i_dcache.creq
-top_test.i_top.i_dcache.cwrite
+top_test.i_top.i_core.i_regfile.write_n
+@22
+top_test.i_top.i_core.i_regfile.rd[4:0]
+top_test.i_top.i_core.i_decode.WReg_pype[4:0]
+top_test.i_top.i_core.i_decode.fornop_register1_pype[4:0]
+top_test.i_top.i_core.i_decode.fornop_register2_pype[4:0]
+@28
+top_test.i_top.i_core.i_decode.writeback_control_pype1[2:0]
+top_test.i_top.i_core.i_decode.MemRW_pype1[1:0]
+top_test.i_top.i_core.noper_unit.forwarding_ID_EX_pyc[1:0]
+@23
+top_test.i_top.i_core.noper_unit.forwarding_ID_EX_data[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

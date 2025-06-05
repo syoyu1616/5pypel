@@ -29,7 +29,11 @@ module core(
     output       dreq,
     output       dwrite,
     output       iack_n,
-    
+
+    output [31:0] branch_count,
+    output [31:0] branch_miss_count,
+
+
     inout [31:0] ddata
 );
 
@@ -98,6 +102,7 @@ module core(
     wire [31:0] branch_miss_PC;
     wire branch_miss_contral;
     wire [31:0] PC_Np_pype0, PC_Np_pype1, PC_Np_pype2;
+    
 
 noper noper_unit (
     .clk(clk),
@@ -119,6 +124,9 @@ noper noper_unit (
     // 分岐成立
     .branch_miss_contral(branch_miss_contral),
 
+    //分岐予測担って必要に
+    .MemBranch_pype2(MemBranch_pype2),
+    .PCp4_pype2(PCp4_pype2),
     //forwarding
     .ALU_co_pype(ALU_co_pype),
     .ALU_co_pype3(ALU_co_pype3),
@@ -199,6 +207,7 @@ noper noper_unit (
     .csr_rdata(csr_rdata),
     .MemRW_pype2(MemRW_pype2),
     .is_branch_predict(predict_taken),
+    .BTB_hit(BTB_hit),
 
     .PC_pype1(PC_pype1), 
     .PCp4_pype1(PCp4_pype1), 
@@ -266,7 +275,9 @@ noper noper_unit (
     .branch_BTB_PC(branch_BTB_PC),
     .branch_BTB_contral(branch_BTB_contral),
     .is_branch_pype2(is_branch_pype2),
-    .PC_pype2(PC_pype2)
+    .PC_pype2(PC_pype2),
+    .branch_count(branch_count),
+    .branch_miss_count(branch_miss_count)
     );
 
 

@@ -14,7 +14,6 @@ module fetch (
     input branch_miss_contral,
     input [31:0] branch_miss_PC,
    
-
     //分岐予測
     output [31:0] lookup_PC,//次の命令のpcを見てくる
     input is_branch_predict,
@@ -84,7 +83,7 @@ always @(posedge clk or negedge rst) begin
             PCp4_pype0 <= next_PCp4_pype0;
         end
 
-        if (is_branch_predict) begin
+        if (is_branch_predict) begin //hitしてないのに分岐予測判定してるやつあるわ
             if (BTB_hit) begin
             next_iaddr = BTB_PC;
             next_PC_pype0 = BTB_PC;

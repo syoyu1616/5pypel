@@ -60,8 +60,8 @@ module decode (
     output reg [3:0] ALU_control_pype,
     output reg [2:0] ALU_Src_pype, //1が10,01,0 2が1,0
     output reg [2:0] funct3_pype1,
-    input is_branch_predict_pype0,
     input is_branch_predict,
+    input BTB_hit,
     output reg is_branch_predict_pype1,
 
 
@@ -162,7 +162,7 @@ module decode (
 
 
 
-    //regfileの読み出しに時間がかかるとして、フォワーディングの際も早期分岐を行うように設計する。
+/*    //regfileの読み出しに時間がかかるとして、フォワーディングの際も早期分岐を行うように設計する。
     //regfileの読み出しに時間がかかりすぎる場合、add add beqみたいな時だけ早期分岐をするようにするかも
 
     wire [31:0] rs1_early_branch = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
@@ -182,7 +182,6 @@ module decode (
     //この計算の感じで分岐予測のためのPCの値を算出するかも(加算器だけ残す?)
     wire is_branch = ((|MemBranch_pype) && (MemBranch_pype!= 3'b111));
 
-
     wire taken = (is_branch && !keep) ? (
                 (funct3_pype1 == 3'b000) ? (rs1_early_branch ^ rs2_early_branch) == 32'b0 :
                 (funct3_pype1 == 3'b001) ? (rs1_early_branch ^ rs2_early_branch) != 32'b0 :
@@ -190,7 +189,7 @@ module decode (
             ) : 1'b0;
 
     assign branch_PC_early_contral = 0;//taken;//0にしないとcsr動かない
-    assign branch_PC_early = PC_pype1 + Imm_pype;
+    assign branch_PC_early = PC_pype1 + Imm_pype;*/
 
 
 
@@ -402,7 +401,6 @@ module decode (
                 Imm_pype <= imm;
                 WReg_pype <= rd;
 
-
             end
             // default
             // addi x0, x0, 0
@@ -429,7 +427,7 @@ module decode (
         is_ecall_pype1 <= is_ecall;
         is_mret_pype1 <= is_mret;
         csr_rdata_pype1 <= csr_rdata;
-        is_branch_predict_pype1 <= is_branch_predict;
+        is_branch_predict_pype1 <= (is_branch_predict && BTB_hit); //nopのことを考え切れてなくない？(nopならこいつ自体入らない)
 
     end
 end

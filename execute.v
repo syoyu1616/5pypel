@@ -37,13 +37,18 @@ module execute(
     output reg is_ePC_pype2,
 
     //分岐予測
-    input is_branch_predict_pype1,
-    output branch_miss_contral,
+    input is_branch_predict_pype1, //分岐予測したか？
+    output branch_miss_contral, //分岐予測リカバリー
     output [31:0] branch_miss_PC,
-    output [31:0] branch_BTB_PC,
-    output branch_BTB_contral,
-    output is_branch_pype2,
-    output reg [31:0] PC_pype2, 
+    output [31:0] branch_BTB_PC, //成立した分岐の目的地
+    output branch_BTB_contral, //分岐が成立したか
+    output is_branch_pype2, //命令が分岐かどうか
+    output reg [31:0] PC_pype2,  //分岐の番地
+
+
+    //分岐予測性能評価
+    output reg [31:0] branch_count,
+    output reg [31:0] branch_miss_count,
 
     //制御線
     input [2:0] writeback_control_pype1,
@@ -75,6 +80,8 @@ wire branch_PC_contral;
 wire [31:0] branch_PC;
 wire csr_PC_contral;
 wire [31:0] csr_PC;
+
+
   
     function signed [31:0] csr_alu(
         input signed [31:0] rs1_val, 
@@ -155,6 +162,7 @@ assign branch_PC_contral =
      (MemBranch_pype2 == 3'b010 && ALU_co_pype != 32'b0)); // bne
 
 assign branch_PC = PCBranch_pype2;//戻り先を書かなきゃね
+
 assign csr_PC_contral = ((is_ecall_pype == 1'b1) || (is_mret_pype == 1'b1));
 assign csr_PC = csr_rdata_pype2;
 
@@ -186,7 +194,7 @@ always @(posedge clk or negedge rst) begin
         WReg_pype2 <= 5'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
-        next_PCBranch_pype2 <= 1'b0;
+        next_PCBranch_pype2 = 1'b0;
         dsize_pype2 <= 2'b00;
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
@@ -198,6 +206,8 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0; 
+        branch_count <= 32'b0;
+        branch_miss_count <= 32'b0;
 
     end else if (keep) begin
         ALU_co_pype <= ALU_co_pype;
@@ -206,7 +216,7 @@ always @(posedge clk or negedge rst) begin
         WReg_pype2 <= WReg_pype2;
         writeback_control_pype2 <= writeback_control_pype2;
         MemRW_pype2 <= MemRW_pype2;
-        next_PCBranch_pype2 <= next_PCBranch_pype2;
+        next_PCBranch_pype2 = next_PCBranch_pype2;
         dsize_pype2 <= dsize_pype2;
         funct3_pype2 <= funct3_pype2;
         is_csr_pype2 <= is_csr_pype2;
@@ -220,7 +230,7 @@ always @(posedge clk or negedge rst) begin
         is_mret_pype <= 1'b0;
         csr_rdata_pype2 <= 32'b0;
         MemBranch_pype2 <= MemBranch_pype2;
-        is_branch_predict_pype2 <= 0;//is_branch_predict_pype2;
+        is_branch_predict_pype2 <= is_branch_predict_pype2;
         PC_pype2 <= PC_pype2; //BTB系はストールとかの信号を考えていないのでkeepでも消すかも
     
 
@@ -230,7 +240,7 @@ always @(posedge clk or negedge rst) begin
         WReg_pype2 <= 5'b0;
         writeback_control_pype2 <= 3'b0;
         MemRW_pype2 <= 2'b0;
-        next_PCBranch_pype2 <= 1'b0;
+        next_PCBranch_pype2 = 1'b0;
         dsize_pype2 <= 2'b10;
         funct3_pype2 <= 3'b0;
         is_csr_pype2 <= 1'b0;
@@ -306,6 +316,11 @@ endcase
     csr_rdata_pype2 <= csr_rdata_pype1;
     is_branch_predict_pype2 <= is_branch_predict_pype1;
     PC_pype2 <= PC_pype1;
+
+    if (is_branch_pype2)
+        branch_count <= branch_count + 1;
+    if (branch_miss_contral)
+        branch_miss_count <= branch_miss_count + 1;
 end
 end
 endmodule
