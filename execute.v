@@ -251,6 +251,11 @@ always @(posedge clk or negedge rst) begin
         MemBranch_pype2 <= 3'b0;
         is_branch_predict_pype2 <= 0;
         PC_pype2 <= 0;
+
+        if (is_branch_pype2)
+            branch_count <= branch_count + 1;
+        if (branch_miss_contral)  //ここいかないよん（nopしちゃう）
+            branch_miss_count <= branch_miss_count + 1;
     end
 
 
@@ -316,11 +321,10 @@ endcase
     csr_rdata_pype2 <= csr_rdata_pype1;
     is_branch_predict_pype2 <= is_branch_predict_pype1;
     PC_pype2 <= PC_pype1;
-
     if (is_branch_pype2)
         branch_count <= branch_count + 1;
-    if (branch_miss_contral)
-        branch_miss_count <= branch_miss_count + 1;
+
+
 end
 end
 endmodule

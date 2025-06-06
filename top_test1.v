@@ -110,6 +110,9 @@ top #(
 	.dmreq(dmreq), .dmwrite(write),
 	.iack_n(iack_n),
 
+	.branch_count(branch_count),
+	.branch_miss_count(branch_miss_count),
+
 	//inout
 	.ddt(ddt)
 );
@@ -178,8 +181,6 @@ initial begin
 	end
 
 	$display("Reach INTOTAL (%d).", INTOTAL);
-	//$display("Reach branch_miss_count (%d).", branch_miss_count);
-	//$display("Reach branch_count (%d).", branch_count);
 	dump_t;
 	$finish;
 	

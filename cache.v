@@ -21,7 +21,7 @@ module cache#(
 	parameter mdata_width = 256,	//メモリデータラインのビット幅
 	parameter cdata_width = 32,		//キャッシュデータラインのビット幅（32ビットか64ビット）
 	parameter addr_width = 32,		//アドレスのビット幅
-	parameter cache_size = 16384,	//キャッシュの容量（バイト単位）
+	parameter cache_size = 16384,	//キャッシュの容量（バイト単位）2^14
 	parameter block_size = 32,		//ブロックサイズ（バイト単位）
 	parameter assoc = 4,			//キャッシュの連想度
 	parameter stdout_addr = 32'hf000_0000,	//標準出力のアドレス
