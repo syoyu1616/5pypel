@@ -29,6 +29,16 @@
 `define FCT3_OR   3'b110
 `define FCT3_AND  3'b111
 
+`define ALU_mul  3'b000
+`define ALU_mulh  3'b001
+`define ALU_mulhsu  3'b010
+`define ALU_mulhu 3'b011
+`define ALU_div  3'b100
+`define ALU_divu  3'b101
+`define ALU_rem   3'b110
+`define ALU_remu  3'b111
+
+
 `define FCT3_BEQ  3'b000
 `define FCT3_BNE  3'b001
 `define FCT3_BLT  3'b100

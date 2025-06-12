@@ -63,6 +63,7 @@ module decode (
     input is_branch_predict,
     input BTB_hit,
     output reg is_branch_predict_pype1,
+    output reg is_m_order,
 
 
 
@@ -78,7 +79,6 @@ module decode (
         以上　unsigned 110
         j系（飛ぶの確定） 111
     */
-
     //writebackで用いる
     output reg [4:0]  WReg_pype,
     output reg [2:0] writeback_control_pype1    //[2] regwrite [1:0] memtoreg
@@ -99,7 +99,20 @@ module decode (
                 3'b100, 3'b101: alu_ctrl = `ALU_SLT;
                 default: alu_ctrl = `ALU_SUB;
             endcase
-        end else if(inst[6:0] == `OP_ALU || inst[6:0] == `OP_ALUI) begin
+        end 
+        elseif (inst[6:0] == `OP_ALU && inst[25] == 1) begin
+            case(inst[14:12])
+                3'b000:  alu_ctrl = `ALU_mul;
+                3'b001:  alu_ctrl = `ALU_mulh;
+                3'b010:  alu_ctrl = `ALU_mulhsu;
+                3'b011:  alu_ctrl = `ALU_mulhu;
+                3'b100:  alu_ctrl = `ALU_div;
+                3'b101:  alu_ctrl = `ALU_divu;
+                3'b110   alu_ctrl = `ALU_rem;
+                3'b111:  alu_ctrl = `ALU_remu;
+            endcase
+        end
+        else if(inst[6:0] == `OP_ALU || inst[6:0] == `OP_ALUI) begin
             case(inst[14:12])
                 `FCT3_ADD:  alu_ctrl = inst[6:0] == `OP_ALU && inst[30] == 1'b1 ? `ALU_SUB : `ALU_ADD;
                 `FCT3_SLL:  alu_ctrl = `ALU_SLL;
@@ -110,6 +123,7 @@ module decode (
                 `FCT3_OR:   alu_ctrl = `ALU_OR;
                 `FCT3_AND:  alu_ctrl = `ALU_AND;
             endcase
+ 
         end else begin
             alu_ctrl = `ALU_ADD;
         end
@@ -161,38 +175,6 @@ module decode (
 
 
 
-
-/*    //regfileの読み出しに時間がかかるとして、フォワーディングの際も早期分岐を行うように設計する。
-    //regfileの読み出しに時間がかかりすぎる場合、add add beqみたいな時だけ早期分岐をするようにするかも
-
-    wire [31:0] rs1_early_branch = (forwarding_ID_EX_pyc[1] == 1) ? forwarding_ID_EX_data:
-                                   (forwarding_ID_MEM_pyc[1] == 1) ? forwarding_ID_MEM_data:
-                                   (forwarding_stall_load_pyc[1] == 1) ? forwarding_load_data:
-                                   (forwarding_ID_MEM_hazard_pyc[1] == 1) ? forwarding_ID_MEM_hazard_data:
-                                   (ID_EX_write_rw[1] == 1) ? write_reg_data:
-                                   read_data1_pype;
-
-    wire [31:0] rs2_early_branch = (forwarding_ID_EX_pyc[0] == 1) ? forwarding_ID_EX_data:
-                                   (forwarding_ID_MEM_pyc[0] == 1) ? forwarding_ID_MEM_data:
-                                   (forwarding_stall_load_pyc[0] == 1) ? forwarding_load_data:
-                                   (forwarding_ID_MEM_hazard_pyc[0] == 1) ? forwarding_ID_MEM_hazard_data:
-                                   (ID_EX_write_rw[0] == 1) ? write_reg_data:
-                                   read_data2_pype;
-
-    //この計算の感じで分岐予測のためのPCの値を算出するかも(加算器だけ残す?)
-    wire is_branch = ((|MemBranch_pype) && (MemBranch_pype!= 3'b111));
-
-    wire taken = (is_branch && !keep) ? (
-                (funct3_pype1 == 3'b000) ? (rs1_early_branch ^ rs2_early_branch) == 32'b0 :
-                (funct3_pype1 == 3'b001) ? (rs1_early_branch ^ rs2_early_branch) != 32'b0 :
-                1'b0
-            ) : 1'b0;
-
-    assign branch_PC_early_contral = 0;//taken;//0にしないとcsr動かない
-    assign branch_PC_early = PC_pype1 + Imm_pype;*/
-
-
-
     always @(posedge clk or negedge rst) begin
 
     if (!rst) begin
@@ -209,6 +191,7 @@ module decode (
         is_mret_pype1 <= 1'b0;
         csr_rdata_pype1 <= 32'b0;
         is_branch_predict_pype1 <= 0;
+        is_m_order <= 0; //一応*,/等の演算子を使って論理合成して、追加の実装が必要かを判断する
 
         //data維持やex以降で用いるやつ0
         Imm_pype <= 32'b0;
@@ -428,7 +411,7 @@ module decode (
         is_mret_pype1 <= is_mret;
         csr_rdata_pype1 <= csr_rdata;
         is_branch_predict_pype1 <= (is_branch_predict && BTB_hit); //nopのことを考え切れてなくない？(nopならこいつ自体入らない)
-
+        is_m_order <= (inst[6:0] == `OP_ALU && inst[25] == 1);
     end
 end
 

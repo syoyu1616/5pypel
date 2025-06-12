@@ -10,19 +10,20 @@ module BHT(
     output predict_taken
 );
 integer i;
+
+/*reg [1:0] bit_table [0:1023];
+wire [9:0] updata_PC_use = updata_PC[11:2]; //PCを4096bitに収まる形でやるため
+wire [9:0] lookup_PC_use = lookup_PC[11:2];*/
+
 reg [1:0] bit_table [0:1023];
 wire [9:0] updata_PC_use = updata_PC[11:2]; //PCを4096bitに収まる形でやるため
 wire [9:0] lookup_PC_use = lookup_PC[11:2];
-
-/*reg [1:0] bit_table [0:511];
-wire [8:0] updata_PC_use = updata_PC[10:2]; //PCを4096bitに収まる形でやるため
-wire [8:0] lookup_PC_use = lookup_PC[10:2];*/
 
     assign predict_taken = (bit_table[lookup_PC_use][1] == 1) ? 1: 0;
 
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
-            for (i = 0; i < 1024; i = i + 1) 
+            for (i = 0; i < 1023; i = i + 1) 
             bit_table[i] <= 2'b01;//最初はweakly not taken
 
         end else if (updata_enable) begin 
